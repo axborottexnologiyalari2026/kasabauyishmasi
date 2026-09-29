@@ -1,4 +1,57 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+  EDMS — Elektron Hujjat Aylanish Tizimi
+  Bitta fayl: HTML (tuzilma) + CSS (ko'rinish) + JS (mantiq)
+================================================================================
+
+  QANDAY TAHRIRLASH KERAK (o'zingiz uchun yo'riqnoma)
+  --------------------------------------------------
+  1) Matn / tugma yozuvi o'zgartirish
+     → HTML qismida qidiring (masalan: "Umumiy hujjatlar", "Qabul qilish")
+
+  2) Rang, o'lcham, dark mode
+     → <style> ... </style> ichida
+     → Qidiruv: ">>> CSS" yoki "Dark mode", "cal-", "multi-"
+
+  3) Tugma bosilganda nima bo'lishi
+     → HTML: onclick="funksiyaNomi(...)"
+     → JS:   function funksiyaNomi(...) { ... }
+     → Nomni O'ZGARTIRMANG — ikkala joy bir xil bo'lishi shart
+
+  4) Ko'p muddatli hujjat
+     → JS: qidiruv ">>> BO'LIM J"
+     → Modal: id="addDocModal" + multiDeadlineToggle
+     → Rektor tekshiruvi: ">>> BO'LIM H"
+
+  5) Yangi modal / tugma qo'shish
+     → HTML oxiriga modal qo'shing (boshqalarga o'xshab)
+     → JS da openX / closeModal('xId') yozing
+     → Kerak bo'lsa showApp ichida ko'rsatish/yashirish
+
+  ASOSIY HTML ID LAR
+  ------------------
+  loginSection              — login oynasi
+  appSection                — tizim (login dan keyin)
+  employeeTasksSection      — xodim topshiriqlari
+  pendingDocumentsSection   — rektor: kelib tushgan
+  reworkDocumentsSection    — admin: qayta ishlash
+  generalDocumentsSection   — umumiy hujjatlar jadvali
+  addDocModal               — hujjat qo'shish/tahrirlash
+  multiGroupMenu            — ko'p muddatli sozlamalar
+  globalDropdown            — jadvaldagi ⋯ menyu
+
+  JS BO'LIMLARI — qidiruv:  >>> BO'LIM
+  ------------------------------------
+  A Supabase   B Login xavfsizlik   C Sana/dark/loader
+  D Session    E Login/rollar       F UI/profil/xodimlar
+  G Hujjatlar  H Rektor pending     I Topshiriqlar
+  J Multi      K Fayllar            L Saqlash/biriktirish
+  M Taqvim
+
+  SUPABASE: users | documents | tasks | storage: document_files
+================================================================================
+-->
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
@@ -26,6 +79,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
+        /* ============================================================
+           >>> CSS 1: Asosiy fon, body, loader
+           ============================================================ */
         body {
             background-color: #f8fafc;
             font-family: system-ui, -apple-system, sans-serif;
@@ -80,6 +136,9 @@
         .loader-dots::after{content:'';animation:loaderDots 1.2s steps(4,end) infinite}
         @keyframes loaderDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
 
+        /* ============================================================
+           >>> CSS 2: Dark mode (html.dark ...)
+           ============================================================ */
         /* ===== Dark mode ===== */
         .theme-toggle {
             position: relative;
@@ -311,6 +370,9 @@
 
     
 
+        /* ============================================================
+           >>> CSS 3: Responsive (desktop / planshet / telefon)
+           ============================================================ */
         /* ========== DESKTOP: biroz kattaroq shrift va elementlar ========== */
         @media (min-width: 1025px) {
             main { font-size: 15.5px; }
@@ -539,11 +601,17 @@
             }
         }
 
+        /* ============================================================
+           >>> CSS 5: Ko'p muddatli qatorlar (.multi-stage-sub)
+           ============================================================ */
         /* Ko'p muddatli qismlar (yig'ilgan qatorlar) */
         tr.multi-stage-sub td { background-image: linear-gradient(90deg, rgba(99,102,241,0.06), transparent 40%); }
         html.dark tr.multi-stage-sub td { background-image: linear-gradient(90deg, rgba(99,102,241,0.12), transparent 40%); }
         .multi-sub-border { border-left-style: dashed !important; }
 
+        /* ============================================================
+           >>> CSS 4: Hujjatlar taqvimi (kalendar) — .cal-* klasslar
+           ============================================================ */
         /* ===================================================== */
         /* ===== HUJJATLAR TAQVIMI (kalendar) — yangi blok ===== */
         /* ===================================================== */
@@ -819,7 +887,10 @@
         </div><p class="loader-text">Yuklanmoqda<span class="loader-dots"></span></p></div>
     </div>
 
-    <!-- 1. LOGIN OYNASI -->
+    <!-- ============================================================
+         HTML 1: LOGIN OYNASI  (id=loginSection)
+         JS: handleLogin → showApp
+         ============================================================ -->
     <div id="loginSection" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 w-full max-w-md relative">
             <button type="button" id="themeToggleBtnLogin" class="theme-toggle theme-toggle-onlight absolute top-4 right-4" onclick="toggleDarkMode(event)" title="Tungi / kunduzgi rejim" aria-label="Tema">
@@ -854,9 +925,12 @@
         </div>
     </div>
 
-    <!-- 2. ASOSIY TIZIM SEKTSIYASI -->
+    <!-- ============================================================
+         HTML 2: ASOSIY TIZIM  (id=appSection) — login dan keyin ko'rinadi
+         Ichida: header + main (xodim / rektor / admin / umumiy)
+         ============================================================ -->
     <div id="appSection" class="hidden">
-        <!-- Header -->
+        <!-- Header: logo, taqvim, qidiruv, tema, chiqish -->
         <header class="bg-blue-900 text-white shadow-md relative">
             <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center gap-2 min-w-0">
                 <div class="flex items-center space-x-2.5 sm:space-x-3.5 min-w-0 flex-1">
@@ -916,7 +990,7 @@
         <!-- Main Content -->
         <main class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
             
-            <!-- XODIM UCHUN: MENING TOPSHIRIQLARIM SEKTSIYASI -->
+            <!-- ---------- HTML 2a: XODIM — mening topshiriqlarim ---------- -->
             <div id="employeeTasksSection" class="hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center">
@@ -945,7 +1019,8 @@
                 </div>
             </div>
 
-            <!-- REKTOR: KELIB TUSHGAN HUJJATLAR -->
+            <!-- ---------- HTML 2b: REKTOR — kelib tushgan (pending)
+                 JS: renderPendingDocuments, approveDocumentGroup ---------- -->
             <div id="pendingDocumentsSection" class="hidden mb-10">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center">
@@ -976,7 +1051,7 @@
                 </div>
             </div>
 
-            <!-- ADMIN: QAYTA ISHLASH -->
+            <!-- ---------- HTML 2c: ADMIN — qayta ishlash ---------- -->
             <div id="reworkDocumentsSection" class="hidden mb-10">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center">
@@ -989,7 +1064,9 @@
                 <div id="reworkDocsContainer" class="space-y-3"></div>
             </div>
 
-            <!-- UMUMIY HUJJATLAR SEKTSIYASI (Faqat Admin va Rektor uchun) -->
+            <!-- ---------- HTML 2d: UMUMIY HUJJATLAR (admin + rektor)
+                 JS: fetchDocuments → renderDocsIntoTable
+                 Ko'p muddatli: strelka + multiGroupMenu ---------- -->
             <div id="generalDocumentsSection" class="hidden">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-slate-900 flex items-center">
@@ -1030,6 +1107,9 @@
         </main>
     </div>
 
+    <!-- ============================================================
+         HTML 3: GLOBAL DROPDOWN (jadvaldagi ⋯ menyu) + multi menyu
+         ============================================================ -->
     <!-- GLOBAL DROPDOWN MENYU -->
     
     <!-- Ma'lumotlar limiti modal -->
@@ -1200,7 +1280,10 @@
         </div>
     </div>
 
-    <!-- 3. MODAL: YANGI HUJJAT QO'SHISH (PLACEHOLDERLAR O'ZGARTIRILDI) -->
+    <!-- ============================================================
+         HTML 4: MODALLAR (pastdan yuqoriga qarab qidiring)
+         ============================================================ -->
+    <!-- MODAL: Hujjat qo'shish / tahrirlash (+ ko'p muddatli checkbox) -->
     <div id="addDocModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl p-6 w-full max-w-xl shadow-2xl border border-slate-100 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
@@ -1571,8 +1654,54 @@
 
     <!-- JavaScript Scriptlar -->
     <script>
+        /* ============================================================================
+         *  EDMS — ELEKTRON HUJJAT AYLANMASI (asosiy skript)
+         *  ------------------------------------------------------------------------
+         *  FAYL TUZILMASI (yuqoridan pastga):
+         *    1) HTML  — login, header, jadvallar, modallar
+         *    2) CSS   — <style> ichida (dark mode, responsive, taqvim, multi)
+         *    3) JS    — shu <script> (pastdagi bo'limlar)
+         *
+         *  JS BO'LIMLARI (qidirish uchun: ">>> BO'LIM"):
+         *    A) Supabase + global o'zgaruvchilar
+         *    B) Login xavfsizligi / parol
+         *    C) Sana formatlari, dark mode, loader
+         *    D) Session, data limit
+         *    E) Login / rollar (rektor, admin, xodim)
+         *    F) UI: showApp, logout, sozlamalar, profil, xodimlar
+         *    G) Hujjatlar: fetch, jadval, qidiruv, dropdown
+         *    H) Rektor tekshiruvi (kelib tushgan) + ko'p muddatli guruh
+         *    I) Topshiriqlar (tasks), mas'ullar
+         *    J) Ko'p muddatli (multi) — guruhlash, expand, saqlash
+         *    K) Fayl yuklash / ko'rish
+         *    L) Hujjat saqlash, biriktirish, bajarish
+         *    M) Taqvim (kalendar)
+         *
+         *  SUPABASE JADVALLAR:
+         *    users      — login, role, full_name, department, password
+         *    documents  — hujjat (status, deadline, file_url, created_at, ...)
+         *    tasks      — xodimga biriktirilgan topshiriq
+         *    storage: document_files
+         *
+         *  HUJJAT STATUSLARI:
+         *    Tekshiruvda → rektor kutmoqda
+         *    Qayta ishlash → admin tuzatadi
+         *    Yangi / Yo'naltirildi / Bajarildi / Tasdiqlandi
+         *
+         *  KO'P MUDDATLI (multi):
+         *    Har bir qism alohida documents qatori.
+         *    Bog'lanish: multi_group_id (DB yoki localStorage) yoki
+         *    bir xil raqam+mavzu+tashkilot + turli muddatlar.
+         *    UI: asosiy qator = eng yaqin muddat; strelka = qolgan qismlar.
+         *    Rektor: bitta "Qabul qilish (N)" → barcha qismlar.
+         *
+         *  DIQQAT: funksiya nomlarini o'zgartirmang — HTML onclick ularga bog'langan.
+         * ======================================================================== */
+
         /* API kaliti faqat publishable (public) — service_role hech qachon frontendda bo'lmasin.
            Haqiqiy himoya: Supabase Dashboard → Authentication / RLS yoqilgan bo'lishi kerak. */
+
+        /* >>> BO'LIM A: Supabase mijoz + global cache <<< */
         const SUPABASE_URL = 'https://fiwepfxhjsepwgbijffp.supabase.co';
         const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_bHSL-Tim-5RuWQaYiSC_dg_8M9o-Kl0';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -1584,6 +1713,8 @@
         let globalDocsCache = [];
         let allDocsCache = [];
 
+
+        /* >>> BO'LIM B: Login xavfsizligi (blokirovka, parol kuchi) <<< */
         /* ===== Xavfsizlik: login blokirovka + parol qoidalari ===== */
         const LOGIN_MAX_FAILS = 10;
         const LOGIN_LOCK_MS = 10 * 60 * 1000; // 10 daqiqa
@@ -1660,6 +1791,8 @@
             return new Promise(r => setTimeout(r, ms));
         }
 
+
+        /* >>> BO'LIM C: Sana formatlari, dark mode, loader <<< */
         function formatDateDMY(dateStr) {
             if (!dateStr) return '';
             const parts = String(dateStr).split('T')[0].split('-');
@@ -1784,6 +1917,8 @@
                 el.setAttribute('aria-busy', 'false');
             }
         }
+
+        /* >>> BO'LIM D: Session nazorati + data limit (storage) <<< */
         async function validateSession() {
             const raw = localStorage.getItem('tatu_user');
             if (!raw) return false;
@@ -2009,6 +2144,8 @@
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible' && currentUser) validateSession();
         });
+
+        /* >>> BO'LIM E: Login va rollar (isRector / isAdminOnly) <<< */
         async function handleLogin(e) {
             e.preventDefault();
             const usernameInput = document.getElementById('username').value.trim();
@@ -2091,6 +2228,53 @@
             const r = user.role.toLowerCase();
             return r.includes('admin') && !isRector(user);
         }
+        /**
+         * Login (username) bandligini tekshiradi.
+         * excludeUserId — tahrirda o'z id sini e'tiborsiz qoldirish.
+         */
+        async function checkUsernameAvailable(username, excludeUserId) {
+            const u = String(username || '').trim();
+            if (!u) return { taken: false };
+            try {
+                const { data, error } = await _supabase
+                    .from('users')
+                    .select('id, username, full_name');
+                if (error) {
+                    console.warn('checkUsernameAvailable', error);
+                    return { taken: false };
+                }
+                const lower = u.toLowerCase();
+                const found = (data || []).find(row => {
+                    if (!row || !row.username) return false;
+                    if (excludeUserId != null && String(row.id) === String(excludeUserId)) return false;
+                    return String(row.username).trim().toLowerCase() === lower;
+                });
+                if (found) {
+                    return {
+                        taken: true,
+                        ownerName: (found.full_name && String(found.full_name).trim())
+                            ? String(found.full_name).trim()
+                            : found.username
+                    };
+                }
+                return { taken: false };
+            } catch (e) {
+                console.warn('checkUsernameAvailable', e);
+                return { taken: false };
+            }
+        }
+        function usernameTakenMessage(username, ownerName) {
+            const login = String(username || '').trim();
+            if (ownerName) {
+                return '«' + login + '» login band.\nBu login allaqachon «' + ownerName + '» xodimiga biriktirilgan.\nBoshqa login tanlang.';
+            }
+            return '«' + login + '» login band.\nBu login allaqachon boshqa xodimda mavjud.\nBoshqa login tanlang.';
+        }
+        function isDuplicateUsernameDbError(err) {
+            const m = String((err && err.message) || err || '').toLowerCase();
+            return m.includes('duplicate') || m.includes('unique') || m.includes('already exists');
+        }
+
         function getReviewNotesMap() {
             try { return JSON.parse(localStorage.getItem('doc_review_notes') || '{}'); } catch { return {}; }
         }
@@ -2104,6 +2288,8 @@
             return getReviewNotesMap()[doc && doc.id] || '';
         }
 
+
+        /* >>> BO'LIM F: Asosiy UI — showApp, logout, sozlamalar, profil, xodimlar <<< */
         async function showApp(user) {
             currentUser = user;
             // 1) Avval loader (to'liq ekran) — asosiy qism miltillamasin
@@ -2185,10 +2371,23 @@
             const username = document.getElementById('myUsername').value;
             const password = document.getElementById('myPassword').value;
 
+            const uname = String(username || '').trim();
+            if (!uname) {
+                alert('Login (username) majburiy!');
+                btn.innerText = 'Saqlash'; btn.disabled = false;
+                return;
+            }
+            const check = await checkUsernameAvailable(uname, currentUser.id);
+            if (check.taken) {
+                alert(usernameTakenMessage(uname, check.ownerName));
+                btn.innerText = 'Saqlash'; btn.disabled = false;
+                return;
+            }
+
             let updateObj = {
                 full_name: fullName,
                 department: department,
-                username: username
+                username: uname
             };
             if (password.trim() !== '') {
                 if (!isPasswordStrong(password.trim())) {
@@ -2209,7 +2408,11 @@
             btn.innerText = 'Saqlash'; btn.disabled = false;
 
             if (error) {
-                alert('Xatolik: ' + error.message);
+                if (isDuplicateUsernameDbError(error)) {
+                    alert(usernameTakenMessage(uname, null));
+                } else {
+                    alert('Xatolik: ' + error.message);
+                }
             } else {
                 alert('Maʼlumotlaringiz muvaffaqiyatli yangilandi!');
                 const pc = String(data.password || '').length + ':' + String(data.password || '').slice(0, 2);
@@ -2309,19 +2512,34 @@
                 return;
             }
 
+            const uname = String(username || '').trim();
+            if (!uname) {
+                alert('Login (username) majburiy!');
+                return;
+            }
+            const check = await checkUsernameAvailable(uname, userId);
+            if (check.taken) {
+                alert(usernameTakenMessage(uname, check.ownerName));
+                return;
+            }
+
             const { error } = await _supabase
                 .from('users')
                 .update({
                     full_name: fullName,
                     role: role,
                     department: department,
-                    username: username,
+                    username: uname,
                     password: password
                 })
                 .eq('id', userId);
 
             if (error) {
-                alert('Xatolik: ' + error.message);
+                if (isDuplicateUsernameDbError(error)) {
+                    alert(usernameTakenMessage(uname, null));
+                } else {
+                    alert('Xatolik: ' + error.message);
+                }
             } else {
                 alert('Xodim maʼlumotlari muvaffaqiyatli saqlandi!');
                 openManageUsersModal();
@@ -2350,6 +2568,11 @@
             else { alert('Xodim o\'chirildi.'); openManageUsersModal(); }
         }
 
+
+        /* >>> BO'LIM G: Hujjatlar — yuklash, jadval, qidiruv, dropdown amallar <<<
+         *  fetchDocuments() → allDocsCache / globalDocsCache / pending / rework
+         *  renderDocsIntoTable() — Umumiy hujjatlar va qidiruv jadvali
+         */
         async function fetchDocuments() {
             const tableBody = document.getElementById('documentTableBody');
             
@@ -2740,6 +2963,11 @@
             else { alert('Hujjat tasdiqlandi!'); fetchDocuments(); }
         }
 
+
+        /* >>> BO'LIM H: Rektor — kelib tushgan hujjatlar (pending)
+         *  Ko'p muddatli: bitta qator + Qabul qilish (N) / Rad etish (butun guruh)
+         *  approveDocumentGroup / openRejectModalGroup / getPendingGroupStageIds
+         */
         function formatDeadlineShort(deadline) {
             if (!deadline) return '—';
             const p = String(deadline).split('T')[0].split('-');
@@ -3064,6 +3292,8 @@
             else { alert('Hujjat rektor tekshiruviga qayta yuborildi!'); fetchDocuments(); }
         }
 
+
+        /* >>> BO'LIM I: Topshiriqlar (tasks) — mas'ullar, xodim jadvali, bajarish <<< */
         function openAssignedPersonsModal(docId) {
             const container = document.getElementById('assignedPersonsListContainer');
             container.innerHTML = '<p class="text-center text-slate-500 py-4">Yuklanmoqda...</p>';
@@ -3323,10 +3553,24 @@
                 return;
             }
 
+            // Login bandligini tekshirish
+            const uname = String(username || '').trim();
+            if (!uname) {
+                alert('Login (username) majburiy!');
+                btn.innerText = "Qo'shish"; btn.disabled = false;
+                return;
+            }
+            const check = await checkUsernameAvailable(uname, null);
+            if (check.taken) {
+                alert(usernameTakenMessage(uname, check.ownerName));
+                btn.innerText = "Qo'shish"; btn.disabled = false;
+                return;
+            }
+
             const { error } = await _supabase.from('users').insert([{
                 full_name: fullName,
                 department: department,
-                username: username,
+                username: uname,
                 password: password,
                 role: role
             }]);
@@ -3334,7 +3578,11 @@
             btn.innerText = 'Qo\'shish'; btn.disabled = false;
 
             if (error) {
-                alert('Xatolik: ' + error.message);
+                if (isDuplicateUsernameDbError(error)) {
+                    alert(usernameTakenMessage(uname, null));
+                } else {
+                    alert('Xatolik: ' + error.message);
+                }
             } else {
                 alert(roleType === 'admin' && isRector(currentUser) ? 'Yangi admin qo\'shildi!' : 'Yangi hodim qo\'shildi!');
                 closeModal('addUserModal');
@@ -3346,6 +3594,16 @@
         let existingDocFiles = [];
         let pendingTaskFiles = [];
 
+
+        /* >>> BO'LIM J: KO'P MUDDATLI HUJJATLAR
+         *  localStorage kaliti: edms_multi_groups
+         *  Asosiy funksiyalar:
+         *    enrichDocsWithMultiMeta  — guruhlash (DB / localStorage / soft-key)
+         *    groupDocsByMulti         — jadval uchun unit lar
+         *    toggleMultiGroupExpand   — strelka (Umumiy hujjatlar)
+         *    handleSaveDocument       — multi create/edit (pastda, BO'LIM L)
+         *    openMultiGroupEditModal / deleteMultiGroupAll — sozlamalar menyusi
+         */
         // ===== Ko'p muddatli hujjat =====
         let multiDeadlineMode = false;
         let multiStages = []; // { id, deadline, pendingFiles: File[], existingFiles: string[] }
@@ -4033,6 +4291,8 @@
                 </tr>`;
         }
 
+
+        /* >>> BO'LIM K: Fayllar — parse/encode URL, preview, yuklash UI <<< */
         function parseFileUrls(val) {
             if (!val) return [];
             if (Array.isArray(val)) return val.filter(Boolean);
@@ -4240,6 +4500,10 @@
             return urls;
         }
 
+
+        /* >>> BO'LIM L: Hujjat saqlash, o'chirish, biriktirish, topshiriqni yakunlash <<<
+         *  handleSaveDocument: oddiy | multi yangi | multi tahrirlash (_editingMultiGroupId)
+         */
         async function handleSaveDocument(e) {
             e.preventDefault();
             const btn = document.getElementById('saveDocBtn');
@@ -4714,6 +4978,8 @@
         /* ============================================================ */
         /* ===== HUJJATLAR TAQVIMI (kalendar) — yangi funksiyalar ===== */
         /* ============================================================ */
+
+        /* >>> BO'LIM M: Hujjatlar taqvimi (kalendar) <<< */
         const CAL_MONTH_NAMES = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
         const CAL_WEEKDAYS = [
             { full: 'dushanba', short: 'Du' },
