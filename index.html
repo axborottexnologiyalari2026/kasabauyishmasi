@@ -1,57 +1,4 @@
 <!DOCTYPE html>
-<!--
-================================================================================
-  EDMS — Elektron Hujjat Aylanish Tizimi
-  Bitta fayl: HTML (tuzilma) + CSS (ko'rinish) + JS (mantiq)
-================================================================================
-
-  QANDAY TAHRIRLASH KERAK (o'zingiz uchun yo'riqnoma)
-  --------------------------------------------------
-  1) Matn / tugma yozuvi o'zgartirish
-     → HTML qismida qidiring (masalan: "Umumiy hujjatlar", "Qabul qilish")
-
-  2) Rang, o'lcham, dark mode
-     → <style> ... </style> ichida
-     → Qidiruv: ">>> CSS" yoki "Dark mode", "cal-", "multi-"
-
-  3) Tugma bosilganda nima bo'lishi
-     → HTML: onclick="funksiyaNomi(...)"
-     → JS:   function funksiyaNomi(...) { ... }
-     → Nomni O'ZGARTIRMANG — ikkala joy bir xil bo'lishi shart
-
-  4) Ko'p muddatli hujjat
-     → JS: qidiruv ">>> BO'LIM J"
-     → Modal: id="addDocModal" + multiDeadlineToggle
-     → Rektor tekshiruvi: ">>> BO'LIM H"
-
-  5) Yangi modal / tugma qo'shish
-     → HTML oxiriga modal qo'shing (boshqalarga o'xshab)
-     → JS da openX / closeModal('xId') yozing
-     → Kerak bo'lsa showApp ichida ko'rsatish/yashirish
-
-  ASOSIY HTML ID LAR
-  ------------------
-  loginSection              — login oynasi
-  appSection                — tizim (login dan keyin)
-  employeeTasksSection      — xodim topshiriqlari
-  pendingDocumentsSection   — rektor: kelib tushgan
-  reworkDocumentsSection    — admin: qayta ishlash
-  generalDocumentsSection   — umumiy hujjatlar jadvali
-  addDocModal               — hujjat qo'shish/tahrirlash
-  multiGroupMenu            — ko'p muddatli sozlamalar
-  globalDropdown            — jadvaldagi ⋯ menyu
-
-  JS BO'LIMLARI — qidiruv:  >>> BO'LIM
-  ------------------------------------
-  A Supabase   B Login xavfsizlik   C Sana/dark/loader
-  D Session    E Login/rollar       F UI/profil/xodimlar
-  G Hujjatlar  H Rektor pending     I Topshiriqlar
-  J Multi      K Fayllar            L Saqlash/biriktirish
-  M Taqvim
-
-  SUPABASE: users | documents | tasks | storage: document_files
-================================================================================
--->
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
@@ -79,9 +26,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* ============================================================
-           >>> CSS 1: Asosiy fon, body, loader
-           ============================================================ */
         body {
             background-color: #f8fafc;
             font-family: system-ui, -apple-system, sans-serif;
@@ -136,9 +80,6 @@
         .loader-dots::after{content:'';animation:loaderDots 1.2s steps(4,end) infinite}
         @keyframes loaderDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
 
-        /* ============================================================
-           >>> CSS 2: Dark mode (html.dark ...)
-           ============================================================ */
         /* ===== Dark mode ===== */
         .theme-toggle {
             position: relative;
@@ -370,9 +311,6 @@
 
     
 
-        /* ============================================================
-           >>> CSS 3: Responsive (desktop / planshet / telefon)
-           ============================================================ */
         /* ========== DESKTOP: biroz kattaroq shrift va elementlar ========== */
         @media (min-width: 1025px) {
             main { font-size: 15.5px; }
@@ -601,17 +539,11 @@
             }
         }
 
-        /* ============================================================
-           >>> CSS 5: Ko'p muddatli qatorlar (.multi-stage-sub)
-           ============================================================ */
         /* Ko'p muddatli qismlar (yig'ilgan qatorlar) */
         tr.multi-stage-sub td { background-image: linear-gradient(90deg, rgba(99,102,241,0.06), transparent 40%); }
         html.dark tr.multi-stage-sub td { background-image: linear-gradient(90deg, rgba(99,102,241,0.12), transparent 40%); }
         .multi-sub-border { border-left-style: dashed !important; }
 
-        /* ============================================================
-           >>> CSS 4: Hujjatlar taqvimi (kalendar) — .cal-* klasslar
-           ============================================================ */
         /* ===================================================== */
         /* ===== HUJJATLAR TAQVIMI (kalendar) — yangi blok ===== */
         /* ===================================================== */
@@ -886,11 +818,6 @@
             </svg>
         </div><p class="loader-text">Yuklanmoqda<span class="loader-dots"></span></p></div>
     </div>
-
-    <!-- ============================================================
-         HTML 1: LOGIN OYNASI  (id=loginSection)
-         JS: handleLogin → showApp
-         ============================================================ -->
     <div id="loginSection" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 w-full max-w-md relative">
             <button type="button" id="themeToggleBtnLogin" class="theme-toggle theme-toggle-onlight absolute top-4 right-4" onclick="toggleDarkMode(event)" title="Tungi / kunduzgi rejim" aria-label="Tema">
@@ -924,11 +851,6 @@
             </form>
         </div>
     </div>
-
-    <!-- ============================================================
-         HTML 2: ASOSIY TIZIM  (id=appSection) — login dan keyin ko'rinadi
-         Ichida: header + main (xodim / rektor / admin / umumiy)
-         ============================================================ -->
     <div id="appSection" class="hidden">
         <!-- Header: logo, taqvim, qidiruv, tema, chiqish -->
         <header class="bg-blue-900 text-white shadow-md relative">
@@ -989,8 +911,6 @@
 
         <!-- Main Content -->
         <main class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
-            
-            <!-- ---------- HTML 2a: XODIM — mening topshiriqlarim ---------- -->
             <div id="employeeTasksSection" class="hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center">
@@ -1018,9 +938,6 @@
                     </table>
                 </div>
             </div>
-
-            <!-- ---------- HTML 2b: REKTOR — kelib tushgan (pending)
-                 JS: renderPendingDocuments, approveDocumentGroup ---------- -->
             <div id="pendingDocumentsSection" class="hidden mb-10">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center">
@@ -1050,8 +967,6 @@
                     </table>
                 </div>
             </div>
-
-            <!-- ---------- HTML 2c: ADMIN — qayta ishlash ---------- -->
             <div id="reworkDocumentsSection" class="hidden mb-10">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-slate-900 flex items-center">
@@ -1063,10 +978,6 @@
                 </div>
                 <div id="reworkDocsContainer" class="space-y-3"></div>
             </div>
-
-            <!-- ---------- HTML 2d: UMUMIY HUJJATLAR (admin + rektor)
-                 JS: fetchDocuments → renderDocsIntoTable
-                 Ko'p muddatli: strelka + multiGroupMenu ---------- -->
             <div id="generalDocumentsSection" class="hidden">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-slate-900 flex items-center">
@@ -1106,10 +1017,6 @@
 
         </main>
     </div>
-
-    <!-- ============================================================
-         HTML 3: GLOBAL DROPDOWN (jadvaldagi ⋯ menyu) + multi menyu
-         ============================================================ -->
     <!-- GLOBAL DROPDOWN MENYU -->
     
     <!-- Ma'lumotlar limiti modal -->
@@ -1241,10 +1148,6 @@
                     <input type="text" id="myFullName" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-600 focus:bg-white transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Bo'lim / Dekanat</label>
-                    <input type="text" id="myDepartment" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-600 focus:bg-white transition">
-                </div>
-                <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Login</label>
                     <input type="text" id="myUsername" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-600 focus:bg-white transition">
                 </div>
@@ -1279,10 +1182,6 @@
             </div>
         </div>
     </div>
-
-    <!-- ============================================================
-         HTML 4: MODALLAR (pastdan yuqoriga qarab qidiring)
-         ============================================================ -->
     <!-- MODAL: Hujjat qo'shish / tahrirlash (+ ko'p muddatli checkbox) -->
     <div id="addDocModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl p-6 w-full max-w-xl shadow-2xl border border-slate-100 max-h-[92vh] overflow-y-auto">
@@ -1357,10 +1256,6 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">F.I.Sh</label>
                     <input type="text" id="newFullName" required placeholder="Xodimning ism va familiyasi" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-purple-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Bo'lim / Dekanat</label>
-                    <input type="text" id="newDepartment" placeholder="Bo'lim yoki dekanat nomi" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-purple-500">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -1654,54 +1549,10 @@
 
     <!-- JavaScript Scriptlar -->
     <script>
-        /* ============================================================================
-         *  EDMS — ELEKTRON HUJJAT AYLANMASI (asosiy skript)
-         *  ------------------------------------------------------------------------
-         *  FAYL TUZILMASI (yuqoridan pastga):
-         *    1) HTML  — login, header, jadvallar, modallar
-         *    2) CSS   — <style> ichida (dark mode, responsive, taqvim, multi)
-         *    3) JS    — shu <script> (pastdagi bo'limlar)
-         *
-         *  JS BO'LIMLARI (qidirish uchun: ">>> BO'LIM"):
-         *    A) Supabase + global o'zgaruvchilar
-         *    B) Login xavfsizligi / parol
-         *    C) Sana formatlari, dark mode, loader
-         *    D) Session, data limit
-         *    E) Login / rollar (rektor, admin, xodim)
-         *    F) UI: showApp, logout, sozlamalar, profil, xodimlar
-         *    G) Hujjatlar: fetch, jadval, qidiruv, dropdown
-         *    H) Rektor tekshiruvi (kelib tushgan) + ko'p muddatli guruh
-         *    I) Topshiriqlar (tasks), mas'ullar
-         *    J) Ko'p muddatli (multi) — guruhlash, expand, saqlash
-         *    K) Fayl yuklash / ko'rish
-         *    L) Hujjat saqlash, biriktirish, bajarish
-         *    M) Taqvim (kalendar)
-         *
-         *  SUPABASE JADVALLAR:
-         *    users      — login, role, full_name, department, password
-         *    documents  — hujjat (status, deadline, file_url, created_at, ...)
-         *    tasks      — xodimga biriktirilgan topshiriq
-         *    storage: document_files
-         *
-         *  HUJJAT STATUSLARI:
-         *    Tekshiruvda → rektor kutmoqda
-         *    Qayta ishlash → admin tuzatadi
-         *    Yangi / Yo'naltirildi / Bajarildi / Tasdiqlandi
-         *
-         *  KO'P MUDDATLI (multi):
-         *    Har bir qism alohida documents qatori.
-         *    Bog'lanish: multi_group_id (DB yoki localStorage) yoki
-         *    bir xil raqam+mavzu+tashkilot + turli muddatlar.
-         *    UI: asosiy qator = eng yaqin muddat; strelka = qolgan qismlar.
-         *    Rektor: bitta "Qabul qilish (N)" → barcha qismlar.
-         *
-         *  DIQQAT: funksiya nomlarini o'zgartirmang — HTML onclick ularga bog'langan.
-         * ======================================================================== */
+        
 
         /* API kaliti faqat publishable (public) — service_role hech qachon frontendda bo'lmasin.
            Haqiqiy himoya: Supabase Dashboard → Authentication / RLS yoqilgan bo'lishi kerak. */
-
-        /* >>> BO'LIM A: Supabase mijoz + global cache <<< */
         const SUPABASE_URL = 'https://fiwepfxhjsepwgbijffp.supabase.co';
         const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_bHSL-Tim-5RuWQaYiSC_dg_8M9o-Kl0';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -1712,9 +1563,6 @@
         let globalTasksCache = [];
         let globalDocsCache = [];
         let allDocsCache = [];
-
-
-        /* >>> BO'LIM B: Login xavfsizligi (blokirovka, parol kuchi) <<< */
         /* ===== Xavfsizlik: login blokirovka + parol qoidalari ===== */
         const LOGIN_MAX_FAILS = 10;
         const LOGIN_LOCK_MS = 10 * 60 * 1000; // 10 daqiqa
@@ -1790,9 +1638,6 @@
         function sleepMs(ms) {
             return new Promise(r => setTimeout(r, ms));
         }
-
-
-        /* >>> BO'LIM C: Sana formatlari, dark mode, loader <<< */
         function formatDateDMY(dateStr) {
             if (!dateStr) return '';
             const parts = String(dateStr).split('T')[0].split('-');
@@ -1917,14 +1762,12 @@
                 el.setAttribute('aria-busy', 'false');
             }
         }
-
-        /* >>> BO'LIM D: Session nazorati + data limit (storage) <<< */
         async function validateSession() {
             const raw = localStorage.getItem('tatu_user');
             if (!raw) return false;
             let stored; try { stored = JSON.parse(raw); } catch { return false; }
             if (!stored || !stored.id) return false;
-            const { data, error } = await _supabase.from('users').select('id, username, password, full_name, role, department').eq('id', stored.id).maybeSingle();
+            const { data, error } = await _supabase.from('users').select('id, username, password, full_name, role').eq('id', stored.id).maybeSingle();
             if (error || !data) { forceLogout('Hisobingiz o‘chirilgan. Qayta kiring.'); return false; }
             if (String(data.username) !== String(stored.username)) {
                 forceLogout('Login o‘zgartirilgan. Qayta kiring.'); return false;
@@ -1943,7 +1786,6 @@
                 username: data.username,
                 full_name: data.full_name,
                 role: data.role,
-                department: data.department
             };
             localStorage.setItem('tatu_user', JSON.stringify({
                 ...currentUser,
@@ -2144,8 +1986,6 @@
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible' && currentUser) validateSession();
         });
-
-        /* >>> BO'LIM E: Login va rollar (isRector / isAdminOnly) <<< */
         async function handleLogin(e) {
             e.preventDefault();
             const usernameInput = document.getElementById('username').value.trim();
@@ -2176,7 +2016,7 @@
                 const start = Date.now();
                 const { data, error } = await _supabase
                     .from('users')
-                    .select('id, username, password, full_name, role, department')
+                    .select('id, username, password, full_name, role')
                     .eq('username', usernameInput)
                     .eq('password', passwordInput)
                     .maybeSingle();
@@ -2202,7 +2042,6 @@
                     username: data.username,
                     full_name: data.full_name,
                     role: data.role,
-                    department: data.department,
                     _pc: String(data.password || '').length + ':' + String(data.password || '').slice(0, 2)
                 };
                 localStorage.setItem('tatu_user', JSON.stringify(sessionUser));
@@ -2287,9 +2126,6 @@
             if (doc && doc.review_note) return doc.review_note;
             return getReviewNotesMap()[doc && doc.id] || '';
         }
-
-
-        /* >>> BO'LIM F: Asosiy UI — showApp, logout, sozlamalar, profil, xodimlar <<< */
         async function showApp(user) {
             currentUser = user;
             // 1) Avval loader (to'liq ekran) — asosiy qism miltillamasin
@@ -2353,7 +2189,6 @@
             if (!currentUser) return;
 
             document.getElementById('myFullName').value = currentUser.full_name || '';
-            document.getElementById('myDepartment').value = currentUser.department || '';
             document.getElementById('myUsername').value = currentUser.username || '';
             document.getElementById('myPassword').value = '';
 
@@ -2367,7 +2202,6 @@
             btn.innerText = 'Saqlanmoqda...'; btn.disabled = true;
 
             const fullName = document.getElementById('myFullName').value;
-            const department = document.getElementById('myDepartment').value;
             const username = document.getElementById('myUsername').value;
             const password = document.getElementById('myPassword').value;
 
@@ -2386,7 +2220,6 @@
 
             let updateObj = {
                 full_name: fullName,
-                department: department,
                 username: uname
             };
             if (password.trim() !== '') {
@@ -2402,7 +2235,7 @@
                 .from('users')
                 .update(updateObj)
                 .eq('id', currentUser.id)
-                .select('id, username, password, full_name, role, department')
+                .select('id, username, password, full_name, role')
                 .single();
 
             btn.innerText = 'Saqlash'; btn.disabled = false;
@@ -2421,8 +2254,7 @@
                     username: data.username,
                     full_name: data.full_name,
                     role: data.role,
-                    department: data.department
-                };
+                    };
                 localStorage.setItem('tatu_user', JSON.stringify({ ...currentUser, _pc: pc }));
                 showApp(currentUser);
                 closeModal('editMyProfileModal');
@@ -2437,7 +2269,7 @@
             document.getElementById('manageUsersModal').classList.remove('hidden');
             document.getElementById('manageUsersModal').classList.add('flex');
 
-            const { data: users, error } = await _supabase.from('users').select('id, username, password, full_name, role, department').order('id', { ascending: true });
+            const { data: users, error } = await _supabase.from('users').select('id, username, password, full_name, role').order('id', { ascending: true });
 
             if (error || !users) {
                 container.innerHTML = '<p class="text-center text-red-500 py-4">Xodimlarni yuklab bo\'lmadi!</p>';
@@ -2453,7 +2285,6 @@
             editableUsers.forEach((u, index) => {
                 const safeName = String(u.full_name || '').replace(/"/g, '&quot;');
                 const safeRole = String(u.role || '').replace(/"/g, '&quot;');
-                const safeDept = String(u.department || '').replace(/"/g, '&quot;');
                 const safeUser = String(u.username || '').replace(/"/g, '&quot;');
                 const safePass = String(u.password || '').replace(/"/g, '&quot;');
                 container.innerHTML += `
@@ -2472,14 +2303,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:pl-7">
-                                <div>
-                                    <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Bo‘lim</label>
-                                    <input type="text" id="edit_dept_${u.id}" value="${safeDept}" placeholder="—" class="w-full text-xs bg-white border border-slate-300 px-2 py-1.5 rounded-lg">
-                                </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:pl-7">
                                 <div>
                                     <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Login</label>
-                                    <input type="text" id="edit_username_${u.id}" value="${safeUser}" placeholder="—" class="w-full text-xs bg-white border border-slate-300 px-2 py-1.5 rounded-lg" autocomplete="off">
+                                    <input type="text" id="edit_username_${u.id}" value="${safeUser}" placeholder="—" class="w-full text-xs bg-white border border-slate-300 px-2 py-1.5 rounded-lg">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-semibold text-slate-500 mb-0.5">Parol</label>
@@ -2503,7 +2330,6 @@
         async function saveSpecificUser(userId) {
             const fullName = document.getElementById(`edit_name_${userId}`).value;
             const role = document.getElementById(`edit_role_${userId}`).value;
-            const department = document.getElementById(`edit_dept_${userId}`).value;
             const username = document.getElementById(`edit_username_${userId}`).value;
             const password = document.getElementById(`edit_pass_${userId}`).value;
 
@@ -2528,7 +2354,6 @@
                 .update({
                     full_name: fullName,
                     role: role,
-                    department: department,
                     username: uname,
                     password: password
                 })
@@ -2557,22 +2382,16 @@
                 return;
             }
             if (!confirm("Ushbu xodimni tizimdan butunlay o'chirmoqchimisiz?\nHujjatlardagi mas'ullik tarixi saqlanib qoladi.")) return;
-            const { data: userRow, error: fetchErr } = await _supabase.from('users').select('full_name, role, department').eq('id', userId).maybeSingle();
+            const { data: userRow, error: fetchErr } = await _supabase.from('users').select('full_name, role').eq('id', userId).maybeSingle();
             if (fetchErr) { alert('Xatolik: ' + fetchErr.message); return; }
             const snapName = (userRow && userRow.full_name) ? userRow.full_name : 'O\'chirilgan xodim';
-            const snapRole = (userRow && (userRow.role || userRow.department)) ? (userRow.role || userRow.department) : '';
+            const snapRole = (userRow && (userRow.role)) ? (userRow.role) : '';
             const { error: snapErr } = await _supabase.from('tasks').update({ employee_name: snapName, employee_role: snapRole, employee_id: null }).eq('employee_id', userId);
             if (snapErr) { alert('Tarixni saqlashda xatolik: ' + snapErr.message); return; }
             const { error } = await _supabase.from('users').delete().eq('id', userId);
             if (error) alert('Xatolik: ' + error.message);
             else { alert('Xodim o\'chirildi.'); openManageUsersModal(); }
         }
-
-
-        /* >>> BO'LIM G: Hujjatlar — yuklash, jadval, qidiruv, dropdown amallar <<<
-         *  fetchDocuments() → allDocsCache / globalDocsCache / pending / rework
-         *  renderDocsIntoTable() — Umumiy hujjatlar va qidiruv jadvali
-         */
         async function fetchDocuments() {
             const tableBody = document.getElementById('documentTableBody');
             
@@ -2962,12 +2781,6 @@
             if (error) alert('Xatolik: ' + error.message);
             else { alert('Hujjat tasdiqlandi!'); fetchDocuments(); }
         }
-
-
-        /* >>> BO'LIM H: Rektor — kelib tushgan hujjatlar (pending)
-         *  Ko'p muddatli: bitta qator + Qabul qilish (N) / Rad etish (butun guruh)
-         *  approveDocumentGroup / openRejectModalGroup / getPendingGroupStageIds
-         */
         function formatDeadlineShort(deadline) {
             if (!deadline) return '—';
             const p = String(deadline).split('T')[0].split('-');
@@ -3291,9 +3104,6 @@
             if (error) alert('Xatolik: ' + error.message);
             else { alert('Hujjat rektor tekshiruviga qayta yuborildi!'); fetchDocuments(); }
         }
-
-
-        /* >>> BO'LIM I: Topshiriqlar (tasks) — mas'ullar, xodim jadvali, bajarish <<< */
         function openAssignedPersonsModal(docId) {
             const container = document.getElementById('assignedPersonsListContainer');
             container.innerHTML = '<p class="text-center text-slate-500 py-4">Yuklanmoqda...</p>';
@@ -3533,7 +3343,6 @@
             btn.innerText = 'Qo\'shilmoqda...'; btn.disabled = true;
 
             const fullName = document.getElementById('newFullName').value;
-            const department = document.getElementById('newDepartment').value;
             const username = document.getElementById('newUsername').value;
             const password = document.getElementById('newPassword').value;
             let role = document.getElementById('newRole').value;
@@ -3569,7 +3378,6 @@
 
             const { error } = await _supabase.from('users').insert([{
                 full_name: fullName,
-                department: department,
                 username: uname,
                 password: password,
                 role: role
@@ -3593,17 +3401,6 @@
         let pendingDocFiles = [];
         let existingDocFiles = [];
         let pendingTaskFiles = [];
-
-
-        /* >>> BO'LIM J: KO'P MUDDATLI HUJJATLAR
-         *  localStorage kaliti: edms_multi_groups
-         *  Asosiy funksiyalar:
-         *    enrichDocsWithMultiMeta  — guruhlash (DB / localStorage / soft-key)
-         *    groupDocsByMulti         — jadval uchun unit lar
-         *    toggleMultiGroupExpand   — strelka (Umumiy hujjatlar)
-         *    handleSaveDocument       — multi create/edit (pastda, BO'LIM L)
-         *    openMultiGroupEditModal / deleteMultiGroupAll — sozlamalar menyusi
-         */
         // ===== Ko'p muddatli hujjat =====
         let multiDeadlineMode = false;
         let multiStages = []; // { id, deadline, pendingFiles: File[], existingFiles: string[] }
@@ -4290,9 +4087,6 @@
                     <td class="py-3.5 px-4 text-center"><div class="inline-flex items-center justify-center gap-1">${multiGearBtn}${actionsButton}</div></td>
                 </tr>`;
         }
-
-
-        /* >>> BO'LIM K: Fayllar — parse/encode URL, preview, yuklash UI <<< */
         function parseFileUrls(val) {
             if (!val) return [];
             if (Array.isArray(val)) return val.filter(Boolean);
@@ -4499,11 +4293,6 @@
             }
             return urls;
         }
-
-
-        /* >>> BO'LIM L: Hujjat saqlash, o'chirish, biriktirish, topshiriqni yakunlash <<<
-         *  handleSaveDocument: oddiy | multi yangi | multi tahrirlash (_editingMultiGroupId)
-         */
         async function handleSaveDocument(e) {
             e.preventDefault();
             const btn = document.getElementById('saveDocBtn');
@@ -4851,7 +4640,7 @@
                 const isManagerOrAdmin = roleLower.includes('admin') || roleLower.includes('rector') || roleLower.includes('rektor') || roleLower.includes('yordamchi');
                 
                 if (!isManagerOrAdmin && currentUser && user.id !== currentUser.id) {
-                    select.innerHTML += `<option value="${user.id}">${user.full_name} (${user.role || user.department || 'Xodim'})</option>`;
+                    select.innerHTML += `<option value="${user.id}">${user.full_name} (${user.role || 'Xodim'})</option>`;
                 }
             });
         }
@@ -4879,8 +4668,8 @@
 
             let empSnapName = '', empSnapRole = '';
             try {
-                const { data: empRow } = await _supabase.from('users').select('full_name, role, department').eq('id', employeeId).maybeSingle();
-                if (empRow) { empSnapName = empRow.full_name || ''; empSnapRole = empRow.role || empRow.department || ''; }
+                const { data: empRow } = await _supabase.from('users').select('full_name, role').eq('id', employeeId).maybeSingle();
+                if (empRow) { empSnapName = empRow.full_name || ''; empSnapRole = empRow.role || ''; }
             } catch (_) {}
             // Biriktiruvchi F.I.Sh. (lavozim emas)
             const assignorName = currentUser ? (currentUser.full_name || currentUser.username || 'Admin') : 'Admin';
@@ -4978,8 +4767,6 @@
         /* ============================================================ */
         /* ===== HUJJATLAR TAQVIMI (kalendar) — yangi funksiyalar ===== */
         /* ============================================================ */
-
-        /* >>> BO'LIM M: Hujjatlar taqvimi (kalendar) <<< */
         const CAL_MONTH_NAMES = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
         const CAL_WEEKDAYS = [
             { full: 'dushanba', short: 'Du' },
