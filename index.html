@@ -539,6 +539,11 @@
             }
         }
 
+        /* Ko'p muddatli qismlar (yig'ilgan qatorlar) */
+        tr.multi-stage-sub td { background-image: linear-gradient(90deg, rgba(99,102,241,0.06), transparent 40%); }
+        html.dark tr.multi-stage-sub td { background-image: linear-gradient(90deg, rgba(99,102,241,0.12), transparent 40%); }
+        .multi-sub-border { border-left-style: dashed !important; }
+
         /* ===================================================== */
         /* ===== HUJJATLAR TAQVIMI (kalendar) — yangi blok ===== */
         /* ===================================================== */
@@ -1128,6 +1133,19 @@
         </button>
     </div>
 
+    <!-- Ko'p muddatli guruh menyusi -->
+    <div id="multiGroupMenu" class="hidden fixed bg-white rounded-xl shadow-2xl border border-slate-200 z-[70] py-1.5 w-56 text-left">
+        <div class="px-3 py-1.5 text-[10px] font-bold uppercase text-indigo-500 tracking-wide">Ko'p muddatli</div>
+        <button type="button" onclick="openMultiGroupEditModal()" class="w-full text-left px-4 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-50 flex items-center transition">
+            <i class="fa-solid fa-pen-to-square mr-2 w-4 text-amber-600"></i> Umumiy tahrirlash
+        </button>
+        <div class="border-t border-slate-100 my-1"></div>
+        <button type="button" onclick="deleteMultiGroupAll()" class="w-full text-left px-4 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 flex items-center transition">
+            <i class="fa-solid fa-trash-can mr-2 w-4"></i> Umumiy o'chirish
+        </button>
+    </div>
+
+
     <!-- MODAL: O'Z MA'LUMOTLARIMNI TAHRIRLASH -->
     <div id="editMyProfileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-100">
@@ -1184,7 +1202,7 @@
 
     <!-- 3. MODAL: YANGI HUJJAT QO'SHISH (PLACEHOLDERLAR O'ZGARTIRILDI) -->
     <div id="addDocModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-slate-100">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-xl shadow-2xl border border-slate-100 max-h-[92vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
                 <h3 id="addDocModalTitle" class="text-lg font-bold text-slate-900">Yangi hujjat kiriting</h3>
                 <button onclick="closeModal('addDocModal')" class="text-slate-400 hover:text-slate-600 bg-slate-50 p-1.5 rounded-lg transition"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -1196,9 +1214,9 @@
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Hujjat raqami</label>
                         <input type="text" id="docNumber" required placeholder="Masalan: 125-F" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
-                    <div>
+                    <div id="singleDeadlineWrap">
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Bajarish muddati</label>
-                        <input type="date" id="docDeadline" required class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-slate-700">
+                        <input type="date" id="docDeadline" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-slate-700">
                     </div>
                 </div>
                 <div>
@@ -1209,12 +1227,34 @@
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Hujjat mavzusi</label>
                     <input type="text" id="docTitle" required placeholder="Hujjatni asosiy mazmuni" class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                 </div>
-                <div>
+
+                <!-- Ko'p muddatli rejim -->
+                <div id="multiDeadlineToggleWrap" class="rounded-xl border border-indigo-100 bg-indigo-50/40 px-3 py-2.5">
+                    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                        <input type="checkbox" id="multiDeadlineToggle" onchange="toggleMultiDeadlineMode()" class="w-4 h-4 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm font-semibold text-indigo-900"><i class="fa-solid fa-layer-group mr-1.5 text-indigo-600"></i>Ko'p muddatli qilib qo'shish</span>
+                    </label>
+                    <p class="text-[11px] text-indigo-700/80 mt-1 ml-6">Davomiy topshiriqlar uchun: har bir qismga alohida muddat va fayl biriktiriladi.</p>
+                </div>
+
+                <div id="singleFileWrap">
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Hujjat fayllari (PDF / rasm — bir nechta)</label>
                     <input type="file" id="docFile" accept=".pdf,image/*" multiple onchange="onDocFilesSelected(event)" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition">
                     <div id="docFileList" class="mt-2 space-y-2"></div>
                     <p class="text-[11px] text-slate-400 mt-1">Bir nechta fayl tanlash mumkin. Avvalgi yuklangan fayllar pastda ko‘rinadi — kerak bo‘lmasa har biri ustidagi × bilan o‘chirib, o‘rniga yangisini yuklashingiz mumkin.</p>
                 </div>
+
+                <div id="multiStagesWrap" class="hidden space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase">Muddat qismlari</label>
+                        <span class="text-[11px] text-slate-400">Har bir qism — alohida muddat + fayl</span>
+                    </div>
+                    <div id="multiStagesList" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
+                    <button type="button" onclick="addMultiStage()" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 text-sm font-semibold transition">
+                        <i class="fa-solid fa-plus"></i> Qism qo'shish
+                    </button>
+                </div>
+
                 <div class="flex justify-end space-x-3 pt-4 border-t border-slate-50 mt-4">
                     <button type="button" onclick="closeModal('addDocModal')" class="px-5 py-2.5 border rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition">Bekor qilish</button>
                     <button type="submit" id="saveDocBtn" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-lg text-sm shadow transition">Saqlash</button>
@@ -1279,6 +1319,7 @@
                 <button onclick="closeModal('rejectDocModal')" class="text-slate-400 hover:text-slate-600 bg-slate-50 p-1.5 rounded-lg transition"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <input type="hidden" id="rejectDocId">
+            <input type="hidden" id="rejectGroupId" value="">
             <p class="text-sm text-slate-600 mb-4">Qanday amalni bajarmoqchisiz?</p>
             <div class="space-y-3">
                 <button type="button" onclick="confirmDeleteDocument()" class="w-full flex items-start gap-3 p-4 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 transition text-left">
@@ -2344,6 +2385,7 @@
                 }
             } catch (e) { console.warn('creator enrich', e); }
 
+            enrichDocsWithMultiMeta(allDocs);
             allDocsCache = allDocs;
             const pendingDocs = allDocs.filter(d => d.status === 'Tekshiruvda');
             const reworkDocs = allDocs.filter(d => d.status === 'Qayta ishlash');
@@ -2384,17 +2426,25 @@
                 return;
             }
 
+            enrichDocsWithMultiMeta(docsList);
+
+            // Group by created_at day, but multi-stages: only primary appears in list; expanded shows siblings
+            const units = groupDocsByMulti(docsList);
+            // Attach each unit to a date key (primary's created_at for multi)
             const groups = {};
-            docsList.forEach(doc => {
+            units.forEach(unit => {
+                const doc = unit.type === 'multi' ? unit.stages[0] : unit.doc;
                 const key = getDateKey(doc.created_at);
                 if (!groups[key]) groups[key] = [];
-                groups[key].push(doc);
+                groups[key].push(unit);
             });
             const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
 
             tableBody.innerHTML = '';
             sortedKeys.forEach(dateKey => {
-                const dayDocs = groups[dateKey];
+                const dayUnits = groups[dateKey];
+                // Count visible rows for header badge (primary only)
+                const dayCount = dayUnits.length;
                 tableBody.innerHTML += `
                     <tr class="bg-gradient-to-r from-slate-100 via-blue-50 to-slate-100">
                         <td colspan="8" class="py-3 px-4">
@@ -2402,122 +2452,50 @@
                                 <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-900 text-white shadow-sm"><i class="fa-regular fa-calendar text-sm"></i></span>
                                 <div>
                                     <span class="text-sm font-bold text-slate-800 tracking-wide">${formatDayHeader(dateKey)}</span>
-                                    <span class="ml-2 text-[11px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">${dayDocs.length} ta hujjat</span>
+                                    <span class="ml-2 text-[11px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">${dayCount} ta hujjat</span>
                                 </div>
                             </div>
                         </td>
                     </tr>`;
 
-                dayDocs.forEach(doc => {
-                    const fileButton = renderFileLinksHtml(doc.file_url);
-
-                    const docTasks = globalTasksCache.filter(t => t.document_id === doc.id);
-                    let assignedBtn = `
-                        <div class="inline-flex flex-col items-center gap-1.5">
-                            <span class="text-xs text-slate-400 italic bg-slate-100 px-2 py-1 rounded">Biriktirilmagan</span>
-                            <button onclick="openAssignModal(${doc.id})" class="w-full text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded-lg transition shadow-sm inline-flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-user-plus text-[10px]"></i> Biriktirish
-                            </button>
-                        </div>`;
-                    if (docTasks.length > 0) {
-                        // Yashil faqat rektor HAMMA mas'ullarni tasdiqlagandan keyin
-                        const allApproved = docTasks.every(t => t.status === 'Bajarildi');
-                        const anyPendingReview = docTasks.some(t => t.status === 'Tekshiruvda');
-                        if (allApproved) {
-                            assignedBtn = `<button onclick="openAssignedPersonsModal(${doc.id})" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition shadow-sm inline-flex items-center"><i class="fa-solid fa-circle-check mr-1.5"></i> Mas'ullar (${docTasks.length}) — Tasdiqlangan</button>`;
-                        } else if (anyPendingReview) {
-                            assignedBtn = `<button onclick="openAssignedPersonsModal(${doc.id})" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-semibold px-3 py-1.5 rounded-lg text-xs transition shadow-sm inline-flex items-center"><i class="fa-solid fa-hourglass-half mr-1.5"></i> Mas'ullar (${docTasks.length}) — Tekshiruvda</button>`;
-                        } else {
-                            assignedBtn = `<button onclick="openAssignedPersonsModal(${doc.id})" class="bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition shadow-sm inline-flex items-center"><i class="fa-solid fa-users mr-1.5"></i> Mas'ullar (${docTasks.length})</button>`;
-                        }
-                    }
-
-                    const actionsButton = `<button onclick="toggleGlobalDropdown(event, ${doc.id})" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition"><i class="fa-solid fa-ellipsis-vertical text-base px-1 pointer-events-none"></i></button>`;
-
-                    let trBgClass = "hover:bg-slate-50 transition-colors duration-300";
-                    let tdBorderClass = "border-transparent border-l-4";
-                    let timeStatusHtml = `<span class="text-xs text-slate-500">Muddat qo'yilmagan</span>`;
-                    let statusBadge = '';
-
-                    if (doc.status === 'Tasdiqlandi') {
-                        trBgClass = "bg-emerald-200/90 hover:bg-emerald-200 transition-colors";
-                        tdBorderClass = "border-l-4 border-emerald-700";
-                        timeStatusHtml = `<span class="text-xs font-bold text-emerald-900"><i class="fa-solid fa-circle-check mr-1"></i> Tashkilot tasdiqlagan</span>`;
-                        statusBadge = `<span class="inline-flex items-center gap-1 bg-emerald-700 text-white border border-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm whitespace-nowrap"><i class="fa-solid fa-check-double text-[10px]"></i>Tasdiqlandi</span>`;
-                    } else if (doc.status === 'Bajarildi') {
-                        trBgClass = "bg-teal-50/70 hover:bg-teal-50 transition-colors";
-                        tdBorderClass = "border-l-4 border-teal-500";
-                        timeStatusHtml = `<span class="text-xs font-semibold text-teal-800"><i class="fa-solid fa-check-circle mr-1"></i> Bajarildi — tasdiq kutilmoqda</span>`;
-                        statusBadge = `<span class="inline-flex items-center bg-teal-100 text-teal-800 border border-teal-300 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm whitespace-nowrap">Bajarildi</span>`;
+                dayUnits.forEach(unit => {
+                    if (unit.type === 'single') {
+                        tableBody.innerHTML += buildDocRowHtml(unit.doc, idPrefix, {});
                     } else {
-                        if (doc.deadline) {
-                            let endDate = new Date(doc.deadline);
-                            endDate.setHours(23, 59, 59, 999);
-                            const end = endDate.getTime();
-                            const now = new Date().getTime();
-                            const daysLeft = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
-                            const formattedDeadline = formatDateDMY(doc.deadline);
-
-                            if (now > end || daysLeft < 0) {
-                                trBgClass = "bg-rose-50/70 hover:bg-rose-100 transition-colors";
-                                tdBorderClass = "border-l-4 border-rose-500";
-                                timeStatusHtml = `<span class="block text-slate-900 font-medium">${formattedDeadline}</span><span class="block mt-1 text-[11px] font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-md inline-block">Muddati o'tgan!</span>`;
-                            } else if (daysLeft < 3) {
-                                trBgClass = "bg-red-50/40 hover:bg-red-50 transition-colors";
-                                tdBorderClass = "border-l-4 border-red-400";
-                                timeStatusHtml = `<span class="block text-slate-900 font-medium">${formattedDeadline}</span><span class="block mt-1 text-[11px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-md inline-block">${daysLeft} kun qoldi</span>`;
-                            } else if (daysLeft <= 7) {
-                                trBgClass = "bg-amber-50/40 hover:bg-amber-50 transition-colors";
-                                tdBorderClass = "border-l-4 border-amber-400";
-                                timeStatusHtml = `<span class="block text-slate-900 font-medium">${formattedDeadline}</span><span class="block mt-1 text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md inline-block">${daysLeft} kun qoldi</span>`;
-                            } else {
-                                trBgClass = "bg-blue-50/30 hover:bg-blue-50/60 transition-colors";
-                                tdBorderClass = "border-l-4 border-blue-500";
-                                timeStatusHtml = `<span class="block text-slate-900 font-medium">${formattedDeadline}</span><span class="block mt-1 text-[11px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md inline-block">Vaqt yetarli (${daysLeft} kun)</span>`;
+                        const gid = String(unit.groupId || '');
+                        // Har safar to'liq qismlarni qayta yig'ish (expand ishonchli ishlashi uchun)
+                        let stages = (typeof getMultiGroupStages === 'function')
+                            ? getMultiGroupStages(gid)
+                            : (unit.stages || []);
+                        if (!stages || stages.length < 2) {
+                            stages = unit.stages || stages || [];
+                        }
+                        // Faqat joriy ro'yxatdagi (yoki asosiy statusdagi) qismlarni ko'rsatish
+                        const idSet = new Set((docsList || []).map(d => d.id));
+                        let visible = stages.filter(d => idSet.has(d.id));
+                        if (visible.length < 2) {
+                            visible = stages.filter(d => {
+                                const st = String(d.status || '');
+                                return st !== 'Tekshiruvda' && st !== 'Qayta ishlash';
+                            });
+                        }
+                        if (visible.length < 2) visible = stages;
+                        visible.sort((a, b) => String(a.deadline || '').localeCompare(String(b.deadline || '')));
+                        const total = visible.length;
+                        const primary = visible[0];
+                        if (!primary) return;
+                        tableBody.innerHTML += buildDocRowHtml(primary, idPrefix, {
+                            multiInfo: { groupId: gid, stageNum: 1, total: total, isPrimary: true }
+                        });
+                        if (expandedMultiGroups[gid] && total > 1) {
+                            for (let i = 1; i < total; i++) {
+                                tableBody.innerHTML += buildDocRowHtml(visible[i], idPrefix, {
+                                    isSubRow: true,
+                                    multiInfo: { groupId: gid, stageNum: i + 1, total: total, isPrimary: false }
+                                });
                             }
                         }
-                        if (doc.status === 'Tekshiruvda') {
-                            statusBadge = `<span class="inline-flex items-center whitespace-nowrap bg-amber-100 text-amber-800 border border-amber-200 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">Rektor tekshiruvida</span>`;
-                        } else if (doc.status === 'Yo\'naltirildi') {
-                            statusBadge = `<span class="inline-flex items-center whitespace-nowrap bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">Jarayonda</span>`;
-                        } else {
-                            statusBadge = `<span class="inline-flex items-center whitespace-nowrap bg-blue-100 text-blue-800 border border-blue-200 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">${doc.status || 'Yangi'}</span>`;
-                        }
                     }
-
-                    let latestLabel = null, latestTime = null, latestIconClass = '', latestColorClass = '';
-                    if (doc.tasdiqlandi_at) { latestLabel = 'Tasdiqlandi'; latestTime = doc.tasdiqlandi_at; latestIconClass = 'fa-solid fa-check-double'; latestColorClass = 'text-emerald-800 font-semibold'; }
-                    else if (doc.bajarildi_at) { latestLabel = 'Bajarildi'; latestTime = doc.bajarildi_at; latestIconClass = 'fa-solid fa-flag-checkered'; latestColorClass = 'text-teal-700'; }
-                    else if (doc.approved_at) { latestLabel = 'Qabul qilingan'; latestTime = doc.approved_at; latestIconClass = 'fa-solid fa-check'; latestColorClass = 'text-emerald-700'; }
-                    else if (doc.created_at) { latestLabel = 'Yuborilgan'; latestTime = doc.created_at; latestIconClass = 'fa-regular fa-clock'; latestColorClass = 'text-slate-500'; }
-                    const latestTimeHtml = latestTime ? `<div class="text-[10px] ${latestColorClass} mt-0.5"><i class="${latestIconClass} mr-0.5"></i> ${latestLabel}: ${formatDateTime(latestTime)}</div>` : '';
-
-                    const uploaderName = (doc.created_by_name && String(doc.created_by_name).trim()) ? String(doc.created_by_name).trim() : '';
-                    const historyIcon = `<button type="button" onclick="event.stopPropagation(); toggleDocHistory(event, '${idPrefix}${doc.id}')" class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-500 hover:text-blue-700 transition" title="Hujjat tarixi"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button>
-                        <div id="docHistory_${idPrefix}${doc.id}" class="hidden absolute z-40 left-0 top-full mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg p-3 text-left">
-                            <div class="text-[10px] uppercase font-bold text-slate-400 mb-1.5">Hujjat tarixi</div>
-                            <div class="text-xs text-slate-800 font-semibold"><i class="fa-solid fa-user-pen text-blue-600 mr-1"></i>${uploaderName || '—'}</div>
-                            <div class="mt-1.5 pt-1.5 border-t border-slate-100 space-y-1">
-                                ${doc.created_at ? `<div class="text-[11px] text-slate-500"><i class="fa-regular fa-clock mr-1 w-3 inline-block"></i>Yuborilgan: ${formatDateTime(doc.created_at)}</div>` : ''}
-                                ${doc.approved_at ? `<div class="text-[11px] text-emerald-700"><i class="fa-solid fa-check mr-1 w-3 inline-block"></i>Qabul qilingan: ${formatDateTime(doc.approved_at)}</div>` : ''}
-                                ${doc.bajarildi_at ? `<div class="text-[11px] text-teal-700"><i class="fa-solid fa-flag-checkered mr-1 w-3 inline-block"></i>Bajarildi: ${formatDateTime(doc.bajarildi_at)}</div>` : ''}
-                                ${doc.tasdiqlandi_at ? `<div class="text-[11px] text-emerald-800 font-semibold"><i class="fa-solid fa-check-double mr-1 w-3 inline-block"></i>Tasdiqlandi: ${formatDateTime(doc.tasdiqlandi_at)}</div>` : ''}
-                                ${(!doc.created_at && !doc.approved_at && !doc.bajarildi_at && !doc.tasdiqlandi_at) ? `<div class="text-[11px] text-slate-400">Ma'lumot yo'q</div>` : ''}
-                            </div>
-                        </div>`;
-                    const createdAtHtml = `<div class="relative inline-block align-middle">${historyIcon}</div>` + latestTimeHtml;
-
-                    tableBody.innerHTML += `
-                        <tr class="${trBgClass}">
-                            <td class="py-3.5 px-4 font-bold text-slate-800 ${tdBorderClass} relative">${doc.doc_number || '№ -'}${createdAtHtml}</td>
-                            <td class="py-3.5 px-4 font-medium">${doc.source_org}</td>
-                            <td class="py-3.5 px-4 text-slate-600">${doc.title}</td>
-                            <td class="py-3.5 px-4">${timeStatusHtml}</td>
-                            <td class="py-3.5 px-4 text-center">${assignedBtn}</td>
-                            <td class="py-3.5 px-4">${fileButton}</td>
-                            <td class="py-3.5 px-4">${statusBadge}</td>
-                            <td class="py-3.5 px-4 text-center">${actionsButton}</td>
-                        </tr>`;
                 });
             });
         }
@@ -2655,11 +2633,16 @@
             if (event && event.target) {
                 const dd = document.getElementById('globalDropdown');
                 const sm = document.getElementById('settingsMenu');
+                const mg = document.getElementById('multiGroupMenu');
                 if (dd && !dd.classList.contains('hidden') && dd.contains(event.target)) return;
                 if (sm && !sm.classList.contains('hidden') && sm.contains(event.target)) return;
+                if (mg && !mg.classList.contains('hidden') && mg.contains(event.target)) return;
             }
-            document.getElementById('globalDropdown').classList.add('hidden');
-            document.getElementById('settingsMenu').classList.add('hidden');
+            const gd = document.getElementById('globalDropdown');
+            const sm = document.getElementById('settingsMenu');
+            if (gd) gd.classList.add('hidden');
+            if (sm) sm.classList.add('hidden');
+            closeMultiGroupMenu();
             activeDropdownDocId = null;
         }
 
@@ -2676,6 +2659,9 @@
             existingDocFiles = parseFileUrls(doc.file_url);
             pendingDocFiles = [];
             renderPendingDocFileList();
+
+            // Tahrirlashda faqat shu qism (bitta hujjat) — ko'p muddatli rejim yopiq
+            setMultiDeadlineModeUI(false, true);
             
             document.getElementById('addDocModalTitle').innerText = "Hujjatni tahrirlash";
             document.getElementById('saveDocBtn').innerText = "O'zgarishlarni saqlash";
@@ -2694,6 +2680,9 @@
             existingDocFiles = [];
             pendingDocFiles = [];
             renderPendingDocFileList();
+            multiStages = [];
+            window._editingMultiGroupId = null;
+            setMultiDeadlineModeUI(false, false);
             
             document.getElementById('addDocModalTitle').innerText = "Yangi hujjat kiriting";
             document.getElementById('saveDocBtn').innerText = "Saqlash";
@@ -2761,82 +2750,203 @@
             const body = document.getElementById('pendingDocsTableBody');
             const countEl = document.getElementById('pendingDocsCount');
             if (!body) return;
-            if (countEl) countEl.innerText = String(pendingDocs.length);
-            if (!pendingDocs.length) {
+
+            if (!pendingDocs || !pendingDocs.length) {
+                if (countEl) countEl.innerText = '0';
                 body.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500 font-medium">Tekshiruv kutayotgan hujjat yo‘q</td></tr>`;
                 return;
             }
+
+            // Ko'p muddatli qismlarni bitta birlik qilib guruhlash
+            if (typeof enrichDocsWithMultiMeta === 'function') enrichDocsWithMultiMeta(pendingDocs);
+            if (allDocsCache && allDocsCache.length && typeof enrichDocsWithMultiMeta === 'function') {
+                enrichDocsWithMultiMeta(allDocsCache);
+            }
+
+            const units = (typeof groupDocsByMulti === 'function')
+                ? groupDocsByMulti(pendingDocs)
+                : pendingDocs.map(d => ({ type: 'single', doc: d }));
+
+            if (countEl) countEl.innerText = String(units.length);
+
             body.innerHTML = '';
-            pendingDocs.forEach(doc => {
-                const fileButton = renderFileLinksHtml(doc.file_url);
-                // F.I.Sh. (lavozim emas)
-                const senderName = (doc.created_by_name && String(doc.created_by_name).trim())
-                    ? String(doc.created_by_name).trim()
-                    : '—';
-                const sender = senderName !== '—'
-                    ? `<span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-900 bg-amber-100/80 px-2 py-1 rounded-lg"><i class="fa-solid fa-user-pen text-[10px]"></i>${senderName}</span>`
-                    : `<span class="text-xs text-slate-400">—</span>`;
-                const sentAt = doc.created_at
-                    ? `<span class="text-xs font-medium text-slate-700">${formatDateTime(doc.created_at)}</span>`
-                    : `<span class="text-xs text-slate-400">—</span>`;
-                body.innerHTML += `
-                    <tr class="hover:bg-amber-50/50 transition-colors">
-                        <td class="py-3.5 px-4 font-bold text-slate-800 border-l-4 border-amber-400">${doc.doc_number || '№ -'}</td>
-                        <td class="py-3.5 px-4 font-medium">${doc.source_org || ''}</td>
-                        <td class="py-3.5 px-4 text-slate-600">${doc.title || ''}</td>
-                        <td class="py-3.5 px-4">${sender}</td>
-                        <td class="py-3.5 px-4">${sentAt}</td>
-                        <td class="py-3.5 px-4 font-medium">${formatDeadlineShort(doc.deadline)}</td>
-                        <td class="py-3.5 px-4">${fileButton}</td>
-                        <td class="py-3.5 px-4 text-center">
-                            <div class="inline-flex flex-col sm:flex-row gap-2 justify-center">
-                                <button onclick="approveDocument(${doc.id})" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"><i class="fa-solid fa-check"></i> Qabul qilish</button>
-                                <button onclick="openRejectModal(${doc.id})" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-semibold rounded-lg transition"><i class="fa-solid fa-xmark"></i> Rad etish</button>
-                            </div>
-                        </td>
-                    </tr>`;
+            units.forEach(unit => {
+                if (unit.type === 'single') {
+                    body.innerHTML += buildPendingDocRow(unit.doc, null);
+                } else {
+                    const gid = String(unit.groupId || '');
+                    let stages = unit.stages || [];
+                    if (typeof getMultiGroupStages === 'function') {
+                        const full = getMultiGroupStages(gid);
+                        // Faqat tekshiruvdagi qismlar
+                        const pendingOnly = full.filter(d => String(d.status || '') === 'Tekshiruvda');
+                        if (pendingOnly.length >= 2) stages = pendingOnly;
+                        else if (full.length > stages.length) stages = full.filter(d => String(d.status || '') === 'Tekshiruvda');
+                    }
+                    stages = (stages || []).slice().sort((a, b) =>
+                        String(a.deadline || '').localeCompare(String(b.deadline || ''))
+                    );
+                    if (!stages.length) return;
+                    const primary = stages[0];
+                    const total = stages.length;
+                    body.innerHTML += buildPendingDocRow(primary, {
+                        groupId: gid,
+                        stages: stages,
+                        total: total,
+                        isPrimary: true
+                    });
+                    // Expand qilingan bo'lsa — qolgan qismlar
+                    if (expandedPendingGroups[gid] && total > 1) {
+                        for (let i = 1; i < total; i++) {
+                            body.innerHTML += buildPendingDocRow(stages[i], {
+                                groupId: gid,
+                                stages: stages,
+                                total: total,
+                                isPrimary: false,
+                                stageNum: i + 1
+                            });
+                        }
+                    }
+                }
             });
         }
 
-        function renderReworkDocuments(reworkDocs) {
-            const container = document.getElementById('reworkDocsContainer');
-            const countEl = document.getElementById('reworkDocsCount');
-            const section = document.getElementById('reworkDocumentsSection');
-            if (!container) return;
-            if (countEl) countEl.innerText = String(reworkDocs.length);
-            if (!isAdminOnly(currentUser)) { if (section) section.classList.add('hidden'); return; }
-            if (section) section.classList.remove('hidden');
-            if (!reworkDocs.length) {
-                container.innerHTML = `<div class="bg-white border border-slate-200 rounded-xl px-4 py-6 text-center text-slate-500 text-sm">Qayta ishlash kutayotgan hujjat yo‘q</div>`;
+        const expandedPendingGroups = {};
+
+        function buildPendingDocRow(doc, multiInfo) {
+            const fileButton = renderFileLinksHtml(doc.file_url);
+            const senderName = (doc.created_by_name && String(doc.created_by_name).trim())
+                ? String(doc.created_by_name).trim()
+                : '—';
+            const sender = senderName !== '—'
+                ? `<span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-900 bg-amber-100/80 px-2 py-1 rounded-lg"><i class="fa-solid fa-user-pen text-[10px]"></i>${senderName}</span>`
+                : `<span class="text-xs text-slate-400">—</span>`;
+            const sentAt = doc.created_at
+                ? `<span class="text-xs font-medium text-slate-700">${formatDateTime(doc.created_at)}</span>`
+                : `<span class="text-xs text-slate-400">—</span>`;
+
+            let numExtra = '';
+            let rowAttr = '';
+            let actionsHtml = '';
+
+            if (multiInfo && multiInfo.isPrimary) {
+                const gid = String(multiInfo.groupId || '');
+                const total = multiInfo.total || 1;
+                const expanded = !!expandedPendingGroups[gid];
+                numExtra = `<span class="ml-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded-md"><i class="fa-solid fa-layer-group"></i>${total} qism</span>
+                    <button type="button" data-pgid="${gid.replace(/"/g, '')}" onclick="event.stopPropagation(); togglePendingGroupExpand(this.getAttribute('data-pgid'))" class="ml-1 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100 transition" title="${expanded ? 'Yigish' : 'Boshqa muddatlarni ochish'}">
+                        <i class="fa-solid fa-chevron-${expanded ? 'up' : 'down'} text-[11px]"></i>
+                    </button>`;
+                rowAttr = ` data-pending-primary="${gid.replace(/"/g, '')}"`;
+                // Bitta tasdiq / rad — butun guruh
+                actionsHtml = `
+                    <div class="inline-flex flex-col sm:flex-row gap-2 justify-center">
+                        <button onclick="approveDocumentGroup('${gid.replace(/'/g, "\\'")}')" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"><i class="fa-solid fa-check"></i> Qabul qilish (${total})</button>
+                        <button onclick="openRejectModalGroup('${gid.replace(/'/g, "\\'")}')" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-semibold rounded-lg transition"><i class="fa-solid fa-xmark"></i> Rad etish</button>
+                    </div>`;
+            } else if (multiInfo && !multiInfo.isPrimary) {
+                const gid = String(multiInfo.groupId || '');
+                numExtra = `<span class="ml-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-md">Qism ${multiInfo.stageNum}/${multiInfo.total}</span>`;
+                rowAttr = ` data-pending-sub="${gid.replace(/"/g, '')}" class="multi-stage-sub"`;
+                actionsHtml = `<span class="text-[11px] text-slate-400 italic">Asosiy qator orqali</span>`;
+            } else {
+                actionsHtml = `
+                    <div class="inline-flex flex-col sm:flex-row gap-2 justify-center">
+                        <button onclick="approveDocument(${doc.id})" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"><i class="fa-solid fa-check"></i> Qabul qilish</button>
+                        <button onclick="openRejectModal(${doc.id})" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-semibold rounded-lg transition"><i class="fa-solid fa-xmark"></i> Rad etish</button>
+                    </div>`;
+            }
+
+            const trClass = multiInfo && !multiInfo.isPrimary
+                ? 'hover:bg-amber-50/50 transition-colors multi-stage-sub'
+                : 'hover:bg-amber-50/50 transition-colors';
+
+            // multiInfo sub uchun rowAttr da class bor — tozalash
+            if (multiInfo && !multiInfo.isPrimary) {
+                rowAttr = ` data-pending-sub="${String(multiInfo.groupId || '').replace(/"/g, '')}"`;
+            }
+
+            return `
+                <tr class="${trClass}"${rowAttr}>
+                    <td class="py-3.5 px-4 font-bold text-slate-800 border-l-4 border-amber-400 ${multiInfo && !multiInfo.isPrimary ? 'pl-8' : ''}">${multiInfo && !multiInfo.isPrimary ? '<span class="text-slate-300 mr-1">↳</span>' : ''}${doc.doc_number || '№ -'}${numExtra}</td>
+                    <td class="py-3.5 px-4 font-medium">${doc.source_org || ''}</td>
+                    <td class="py-3.5 px-4 text-slate-600">${doc.title || ''}</td>
+                    <td class="py-3.5 px-4">${sender}</td>
+                    <td class="py-3.5 px-4">${sentAt}</td>
+                    <td class="py-3.5 px-4 font-medium">${formatDeadlineShort(doc.deadline)}</td>
+                    <td class="py-3.5 px-4">${fileButton}</td>
+                    <td class="py-3.5 px-4 text-center">${actionsHtml}</td>
+                </tr>`;
+        }
+
+        function togglePendingGroupExpand(groupId) {
+            if (!groupId) return;
+            const gid = String(groupId);
+            expandedPendingGroups[gid] = !expandedPendingGroups[gid];
+            const pending = (allDocsCache || []).filter(d => String(d.status || '') === 'Tekshiruvda');
+            renderPendingDocuments(pending);
+        }
+
+        function getPendingGroupStageIds(groupId) {
+            const gid = String(groupId);
+            let stages = (typeof getMultiGroupStages === 'function') ? getMultiGroupStages(gid) : [];
+            stages = (stages || []).filter(d => String(d.status || '') === 'Tekshiruvda');
+            if (stages.length < 2) {
+                const all = (allDocsCache || []).filter(d => String(d.status || '') === 'Tekshiruvda');
+                if (typeof enrichDocsWithMultiMeta === 'function') enrichDocsWithMultiMeta(all);
+                stages = all.filter(d => {
+                    const meta = typeof getDocMultiMeta === 'function' ? getDocMultiMeta(d) : null;
+                    return meta && String(meta.groupId) === gid;
+                });
+            }
+            if (stages.length < 2) {
+                const all = (allDocsCache || []).filter(d => String(d.status || '') === 'Tekshiruvda');
+                const sample = stages[0] || all.find(d => {
+                    const meta = typeof getDocMultiMeta === 'function' ? getDocMultiMeta(d) : null;
+                    return meta && String(meta.groupId) === gid;
+                });
+                if (sample && typeof multiSoftKey === 'function') {
+                    const sk = multiSoftKey(sample);
+                    stages = all.filter(d => multiSoftKey(d) === sk);
+                }
+            }
+            return stages;
+        }
+
+        async function approveDocumentGroup(groupId) {
+            if (!isRector(currentUser)) { alert('Faqat rektor qabul qila oladi!'); return; }
+            const stages = getPendingGroupStageIds(groupId);
+            if (!stages.length) {
+                alert('Qismlar topilmadi.');
                 return;
             }
-            container.innerHTML = '';
-            reworkDocs.forEach(doc => {
-                const note = getReviewNote(doc) || 'Izoh ko‘rsatilmagan';
-                const fileButton = renderFileLinksHtml(doc.file_url);
-                container.innerHTML += `
-                    <div class="bg-white border border-rose-200 rounded-xl p-4 shadow-sm">
-                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="font-bold text-slate-900">${doc.doc_number || '№ -'}</span>
-                                    <span class="text-[11px] font-semibold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">Qayta ishlash</span>
-                                </div>
-                                <div class="text-sm text-slate-700 font-medium">${doc.title || ''}</div>
-                                <div class="text-xs text-slate-500 mt-0.5">${doc.source_org || ''} · Muddat: ${formatDeadlineShort(doc.deadline)}</div>
-                                <div class="mt-3 p-3 rounded-lg bg-rose-50 border border-rose-100">
-                                    <div class="text-[11px] font-bold text-rose-700 uppercase mb-1"><i class="fa-solid fa-comment-dots mr-1"></i> Rektor kamchiligi</div>
-                                    <div class="text-sm text-rose-900">${note}</div>
-                                </div>
-                                ${fileButton ? `<div class="mt-2">${fileButton}</div>` : ''}
-                            </div>
-                            <div class="flex flex-col gap-2 sm:items-end flex-shrink-0">
-                                <button onclick="openEditDocModal(${doc.id})" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg shadow-sm transition"><i class="fa-solid fa-pen"></i> Tahrirlash</button>
-                                <button onclick="resubmitToRector(${doc.id})" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold rounded-lg shadow-sm transition"><i class="fa-solid fa-paper-plane"></i> Yana rektorga</button>
-                            </div>
-                        </div>
-                    </div>`;
-            });
+            if (!confirm(`Ko'p muddatli hujjatning barcha ${stages.length} ta qismi qabul qilinib Umumiy hujjatlarga qo'shiladi. Davom etasizmi?`)) return;
+            const nowIso = new Date().toISOString();
+            let errMsg = null;
+            for (const doc of stages) {
+                let { error } = await _supabase.from('documents').update({ status: 'Yangi', approved_at: nowIso }).eq('id', doc.id);
+                if (error) {
+                    const r2 = await _supabase.from('documents').update({ status: 'Yangi' }).eq('id', doc.id);
+                    error = r2.error;
+                }
+                if (error) { errMsg = error.message; break; }
+            }
+            if (errMsg) alert('Xatolik: ' + errMsg);
+            else { alert(`Ko'p muddatli hujjat (${stages.length} qism) qabul qilindi!`); fetchDocuments(); }
+        }
+
+        function openRejectModalGroup(groupId) {
+            if (!isRector(currentUser)) return;
+            document.getElementById('rejectDocId').value = '';
+            const gidInput = document.getElementById('rejectGroupId');
+            if (gidInput) gidInput.value = groupId;
+            else {
+                // fallback: rejectDocId ga maxsus belgi
+                document.getElementById('rejectDocId').value = 'group:' + groupId;
+            }
+            document.getElementById('rejectNote').value = '';
+            document.getElementById('rejectDocModal').classList.remove('hidden');
+            document.getElementById('rejectDocModal').classList.add('flex');
         }
 
         async function approveDocument(docId) {
@@ -2855,14 +2965,47 @@
         function openRejectModal(docId) {
             if (!isRector(currentUser)) return;
             document.getElementById('rejectDocId').value = docId;
+            const gidInput = document.getElementById('rejectGroupId');
+            if (gidInput) gidInput.value = '';
             document.getElementById('rejectNote').value = '';
             document.getElementById('rejectDocModal').classList.remove('hidden');
             document.getElementById('rejectDocModal').classList.add('flex');
         }
 
         async function confirmDeleteDocument() {
-            const docId = document.getElementById('rejectDocId').value;
-            if (!docId || !isRector(currentUser)) return;
+            if (!isRector(currentUser)) return;
+            const gidInput = document.getElementById('rejectGroupId');
+            let groupId = gidInput ? (gidInput.value || '').trim() : '';
+            let docId = document.getElementById('rejectDocId').value;
+            if (!groupId && String(docId).startsWith('group:')) {
+                groupId = String(docId).slice(6);
+                docId = '';
+            }
+            if (groupId) {
+                const stages = getPendingGroupStageIds(groupId);
+                // Qayta ishlashdagi yoki barcha guruh qismlari
+                let list = stages;
+                if (!list.length && typeof getMultiGroupStages === 'function') {
+                    list = getMultiGroupStages(groupId);
+                }
+                if (!list.length) { alert('Qismlar topilmadi.'); return; }
+                if (!confirm(`Ko'p muddatli hujjatning barcha ${list.length} ta qismi bazadan o‘chiriladi. Davom etasizmi?`)) return;
+                try {
+                    for (const doc of list) {
+                        await _supabase.from('tasks').delete().eq('document_id', doc.id);
+                        const { error } = await _supabase.from('documents').delete().eq('id', doc.id);
+                        if (error) throw error;
+                        setReviewNote(doc.id, null);
+                    }
+                    closeModal('rejectDocModal');
+                    alert("Ko'p muddatli hujjat o‘chirildi.");
+                    fetchDocuments();
+                } catch (err) {
+                    alert('Xatolik: ' + (err.message || err));
+                }
+                return;
+            }
+            if (!docId) return;
             if (!confirm('Hujjat bazadan butunlay o‘chiriladi. Davom etasizmi?')) return;
             const { error } = await _supabase.from('documents').delete().eq('id', docId);
             if (error) alert('Xatolik: ' + error.message);
@@ -2870,10 +3013,34 @@
         }
 
         async function confirmReworkDocument() {
-            const docId = document.getElementById('rejectDocId').value;
+            if (!isRector(currentUser)) return;
             const note = (document.getElementById('rejectNote').value || '').trim();
-            if (!docId || !isRector(currentUser)) return;
             if (!note) { alert('Kamchilik / izohni yozing!'); return; }
+            const gidInput = document.getElementById('rejectGroupId');
+            let groupId = gidInput ? (gidInput.value || '').trim() : '';
+            let docId = document.getElementById('rejectDocId').value;
+            if (!groupId && String(docId).startsWith('group:')) {
+                groupId = String(docId).slice(6);
+                docId = '';
+            }
+            if (groupId) {
+                const stages = getPendingGroupStageIds(groupId);
+                if (!stages.length) { alert('Qismlar topilmadi.'); return; }
+                let errMsg = null;
+                for (const doc of stages) {
+                    let { error } = await _supabase.from('documents').update({ status: 'Qayta ishlash', review_note: note }).eq('id', doc.id);
+                    if (error) {
+                        const r2 = await _supabase.from('documents').update({ status: 'Qayta ishlash' }).eq('id', doc.id);
+                        error = r2.error;
+                        setReviewNote(doc.id, note);
+                    } else setReviewNote(doc.id, note);
+                    if (error) { errMsg = error.message; break; }
+                }
+                if (errMsg) alert('Xatolik: ' + errMsg);
+                else { closeModal('rejectDocModal'); alert(`Ko'p muddatli hujjat (${stages.length} qism) qayta ishlash uchun yuborildi.`); fetchDocuments(); }
+                return;
+            }
+            if (!docId) return;
             let { error } = await _supabase.from('documents').update({ status: 'Qayta ishlash', review_note: note }).eq('id', docId);
             if (error) {
                 const r2 = await _supabase.from('documents').update({ status: 'Qayta ishlash' }).eq('id', docId);
@@ -3179,6 +3346,693 @@
         let existingDocFiles = [];
         let pendingTaskFiles = [];
 
+        // ===== Ko'p muddatli hujjat =====
+        let multiDeadlineMode = false;
+        let multiStages = []; // { id, deadline, pendingFiles: File[], existingFiles: string[] }
+        let multiStageIdSeq = 1;
+        const MULTI_LS_KEY = 'edms_multi_groups';
+        const expandedMultiGroups = {}; // groupId -> bool
+
+        function loadMultiGroupMap() {
+            try { return JSON.parse(localStorage.getItem(MULTI_LS_KEY) || '{}') || {}; }
+            catch (_) { return {}; }
+        }
+        function saveMultiGroupMap(map) {
+            try { localStorage.setItem(MULTI_LS_KEY, JSON.stringify(map)); } catch (_) {}
+        }
+        function setDocMultiMeta(docId, groupId, stageIndex, totalStages) {
+            if (!docId || !groupId) return;
+            const m = loadMultiGroupMap();
+            m[String(docId)] = { groupId: String(groupId), stageIndex: Number(stageIndex) || 0, totalStages: Number(totalStages) || 1 };
+            saveMultiGroupMap(m);
+        }
+        function getDocMultiMeta(doc) {
+            if (!doc) return null;
+            if (doc.multi_group_id) {
+                return {
+                    groupId: String(doc.multi_group_id),
+                    stageIndex: Number(doc.stage_index != null ? doc.stage_index : 0),
+                    totalStages: Number(doc.total_stages || 0) || 0
+                };
+            }
+            const m = loadMultiGroupMap();
+            return m[String(doc.id)] || null;
+        }
+        /** Yumshoq guruh kaliti: raqam + mavzu + tashkilot */
+        function multiSoftKey(doc) {
+            if (!doc) return '';
+            return [
+                String(doc.doc_number || '').trim().toLowerCase(),
+                String(doc.title || '').trim().toLowerCase(),
+                String(doc.source_org || '').trim().toLowerCase()
+            ].join('||');
+        }
+        function multiCreatedMs(doc) {
+            if (!doc || !doc.created_at) return 0;
+            const t = new Date(doc.created_at).getTime();
+            return isNaN(t) ? 0 : t;
+        }
+        function enrichDocsWithMultiMeta(docs) {
+            if (!docs || !docs.length) return docs;
+            const m = loadMultiGroupMap();
+
+            docs.forEach(d => {
+                if (!d) return;
+                if (!d.multi_group_id && m[String(d.id)]) {
+                    d.multi_group_id = m[String(d.id)].groupId;
+                    d.stage_index = m[String(d.id)].stageIndex;
+                    d.total_stages = m[String(d.id)].totalStages;
+                }
+            });
+
+            // Soft key bo'yicha: bir xil raqam/mavzu/tashkilot + 5 daqiqa ichida + turli muddat
+            const byKey = {};
+            docs.forEach(d => {
+                if (!d) return;
+                const key = multiSoftKey(d);
+                if (!key || key.split('||').filter(Boolean).length < 2) return;
+                if (!byKey[key]) byKey[key] = [];
+                byKey[key].push(d);
+            });
+
+            Object.keys(byKey).forEach(key => {
+                const list = byKey[key];
+                if (list.length < 2) return;
+
+                // Avval: turli muddatli barcha bir soft-key dagi hujjatlar (vaqt cheklovisiz)
+                // Bu strelka ochilishi uchun eng ishonchli yo'l
+                const deadlinesAll = new Set(list.map(d => String(d.deadline || '').split('T')[0]).filter(Boolean));
+                if (deadlinesAll.size >= 2) {
+                    let gid = null;
+                    list.forEach(d => {
+                        if (d.multi_group_id) gid = String(d.multi_group_id);
+                        else {
+                            const prev = m[String(d.id)];
+                            if (prev && prev.groupId) gid = String(prev.groupId);
+                        }
+                    });
+                    if (!gid) {
+                        gid = 'mg_' + Math.abs(Array.from(key).reduce((h, c) => ((h << 5) - h) + c.charCodeAt(0), 0)).toString(36);
+                    }
+                    const sorted = list.slice().sort((a, b) => String(a.deadline || '').localeCompare(String(b.deadline || '')));
+                    sorted.forEach((d, i) => {
+                        d.multi_group_id = gid;
+                        d.stage_index = i;
+                        d.total_stages = sorted.length;
+                        setDocMultiMeta(d.id, gid, i, sorted.length);
+                    });
+                    return;
+                }
+            });
+            return docs;
+        }
+        function makeMultiGroupId() {
+            return 'mg_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+        }
+        function resetMultiStages(minCount) {
+            multiStages = [];
+            multiStageIdSeq = 1;
+            const n = Math.max(2, minCount || 2);
+            for (let i = 0; i < n; i++) addMultiStage(true);
+            renderMultiStagesList();
+        }
+        function addMultiStage(skipRender) {
+            multiStages.push({
+                id: multiStageIdSeq++,
+                deadline: '',
+                pendingFiles: [],
+                existingFiles: []
+            });
+            if (!skipRender) renderMultiStagesList();
+        }
+        function removeMultiStage(stageId) {
+            if (multiStages.length <= 2) {
+                alert("Ko'p muddatli rejimda kamida 2 ta qism bo'lishi kerak.");
+                return;
+            }
+            multiStages = multiStages.filter(s => s.id !== stageId);
+            renderMultiStagesList();
+        }
+        function onMultiStageFilesSelected(event, stageId) {
+            const files = Array.from(event.target.files || []);
+            const st = multiStages.find(s => s.id === stageId);
+            if (!st) return;
+            st.pendingFiles = st.pendingFiles.concat(files);
+            event.target.value = '';
+            renderMultiStagesList();
+        }
+        function removeMultiStagePendingFile(stageId, idx) {
+            const st = multiStages.find(s => s.id === stageId);
+            if (!st) return;
+            st.pendingFiles.splice(idx, 1);
+            renderMultiStagesList();
+        }
+        function removeMultiStageExistingFile(stageId, idx) {
+            const st = multiStages.find(s => s.id === stageId);
+            if (!st) return;
+            st.existingFiles.splice(idx, 1);
+            renderMultiStagesList();
+        }
+        function onMultiStageDeadlineChange(stageId, val) {
+            const st = multiStages.find(s => s.id === stageId);
+            if (st) st.deadline = val;
+        }
+        function renderMultiStagesList() {
+            const box = document.getElementById('multiStagesList');
+            if (!box) return;
+            box.innerHTML = multiStages.map((st, i) => {
+                const existingHtml = (st.existingFiles || []).map((url, fi) => {
+                    const isImg = /\.(jpg|jpeg|png|gif|webp|bmp)(\?|$)/i.test(url);
+                    const icon = isImg ? 'fa-image text-blue-500' : 'fa-file-pdf text-red-500';
+                    return `<div class="relative flex items-center gap-2 bg-blue-50/60 border border-blue-100 rounded-lg px-2.5 py-1.5 pr-8 text-xs">
+                        <i class="fa-solid ${icon}"></i>
+                        <span class="truncate text-blue-800 font-medium">Avvalgi fayl ${fi + 1}</span>
+                        <button type="button" onclick="removeMultiStageExistingFile(${st.id}, ${fi})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 flex items-center justify-center"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                    </div>`;
+                }).join('');
+                const pendingHtml = (st.pendingFiles || []).map((f, fi) => {
+                    const isImg = (f.type || '').startsWith('image/');
+                    const icon = isImg ? 'fa-image text-blue-500' : 'fa-file-pdf text-red-500';
+                    return `<div class="relative flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 pr-8 text-xs">
+                        <i class="fa-solid ${icon}"></i>
+                        <span class="truncate text-slate-800 font-medium">${f.name}</span>
+                        <button type="button" onclick="removeMultiStagePendingFile(${st.id}, ${fi})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 flex items-center justify-center"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                    </div>`;
+                }).join('');
+                return `<div class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-800 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-lg">
+                            <i class="fa-solid fa-list-ol"></i> Qism ${i + 1}
+                        </span>
+                        <button type="button" onclick="removeMultiStage(${st.id})" class="text-rose-500 hover:text-rose-700 text-xs font-semibold px-2 py-1 rounded-lg hover:bg-rose-50 transition" title="Qismni o'chirish">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Muddat</label>
+                        <input type="date" value="${st.deadline || ''}" onchange="onMultiStageDeadlineChange(${st.id}, this.value)" required class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Fayllar (PDF / rasm)</label>
+                        <input type="file" accept=".pdf,image/*" multiple onchange="onMultiStageFilesSelected(event, ${st.id})" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        <div class="mt-1.5 space-y-1">${existingHtml}${pendingHtml}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        function toggleMultiDeadlineMode() {
+            const cb = document.getElementById('multiDeadlineToggle');
+            multiDeadlineMode = !!(cb && cb.checked);
+            const singleDl = document.getElementById('singleDeadlineWrap');
+            const singleFile = document.getElementById('singleFileWrap');
+            const multiWrap = document.getElementById('multiStagesWrap');
+            const dlInput = document.getElementById('docDeadline');
+            if (multiDeadlineMode) {
+                if (singleDl) singleDl.classList.add('hidden');
+                if (singleFile) singleFile.classList.add('hidden');
+                if (multiWrap) multiWrap.classList.remove('hidden');
+                if (dlInput) { dlInput.removeAttribute('required'); dlInput.value = ''; }
+                if (!multiStages.length) resetMultiStages(2);
+                else renderMultiStagesList();
+            } else {
+                if (singleDl) singleDl.classList.remove('hidden');
+                if (singleFile) singleFile.classList.remove('hidden');
+                if (multiWrap) multiWrap.classList.add('hidden');
+                if (dlInput) dlInput.setAttribute('required', 'required');
+            }
+        }
+        function setMultiDeadlineModeUI(on, hideToggle) {
+            const cb = document.getElementById('multiDeadlineToggle');
+            const toggleWrap = document.getElementById('multiDeadlineToggleWrap');
+            if (cb) cb.checked = !!on;
+            multiDeadlineMode = !!on;
+            if (toggleWrap) {
+                if (hideToggle) toggleWrap.classList.add('hidden');
+                else toggleWrap.classList.remove('hidden');
+            }
+            toggleMultiDeadlineMode();
+            // toggleMultiDeadlineMode reads checkbox — re-sync
+            if (cb) cb.checked = !!on;
+            multiDeadlineMode = !!on;
+            const singleDl = document.getElementById('singleDeadlineWrap');
+            const singleFile = document.getElementById('singleFileWrap');
+            const multiWrap = document.getElementById('multiStagesWrap');
+            const dlInput = document.getElementById('docDeadline');
+            if (on) {
+                if (singleDl) singleDl.classList.add('hidden');
+                if (singleFile) singleFile.classList.add('hidden');
+                if (multiWrap) multiWrap.classList.remove('hidden');
+                if (dlInput) { dlInput.removeAttribute('required'); }
+            } else {
+                if (singleDl) singleDl.classList.remove('hidden');
+                if (singleFile) singleFile.classList.remove('hidden');
+                if (multiWrap) multiWrap.classList.add('hidden');
+                if (dlInput) dlInput.setAttribute('required', 'required');
+            }
+        }
+        function getMultiGroupStages(groupId, docsSource) {
+            const gid = String(groupId);
+            const pool = [];
+            const seen = new Set();
+            const sources = [docsSource, allDocsCache, globalDocsCache];
+            sources.forEach(src => {
+                if (!src || !src.length) return;
+                enrichDocsWithMultiMeta(src);
+                src.forEach(d => {
+                    if (!d || seen.has(d.id)) return;
+                    const meta = getDocMultiMeta(d);
+                    if (meta && String(meta.groupId) === gid) {
+                        seen.add(d.id);
+                        pool.push(d);
+                    }
+                });
+            });
+            if (pool.length < 2) {
+                let sample = pool[0];
+                if (!sample) {
+                    const all = (allDocsCache && allDocsCache.length) ? allDocsCache : (globalDocsCache || []);
+                    sample = all.find(d => {
+                        const meta = getDocMultiMeta(d);
+                        return meta && String(meta.groupId) === gid;
+                    });
+                }
+                if (sample) {
+                    const sk = multiSoftKey(sample);
+                    const ms0 = multiCreatedMs(sample);
+                    const all = (allDocsCache && allDocsCache.length) ? allDocsCache : (globalDocsCache || []);
+                    all.forEach(d => {
+                        if (!d || seen.has(d.id)) return;
+                        if (multiSoftKey(d) !== sk) return;
+                        if (ms0 && multiCreatedMs(d) && Math.abs(multiCreatedMs(d) - ms0) > 5 * 60 * 1000) return;
+                        seen.add(d.id);
+                        pool.push(d);
+                    });
+                }
+            }
+            pool.sort((a, b) => {
+                const da = String(a.deadline || '').split('T')[0];
+                const db = String(b.deadline || '').split('T')[0];
+                if (da !== db) return da.localeCompare(db);
+                return (Number(a.id) || 0) - (Number(b.id) || 0);
+            });
+            pool.forEach((d, i) => {
+                d.multi_group_id = gid;
+                d.stage_index = i;
+                d.total_stages = pool.length;
+                setDocMultiMeta(d.id, gid, i, pool.length);
+            });
+            return pool;
+        }
+        function groupDocsByMulti(docsList) {
+            if (allDocsCache && allDocsCache.length) enrichDocsWithMultiMeta(allDocsCache);
+            enrichDocsWithMultiMeta(docsList);
+
+            const groupMap = {};
+            (docsList || []).forEach(doc => {
+                const meta = getDocMultiMeta(doc);
+                if (meta && meta.groupId) {
+                    const gid = String(meta.groupId);
+                    if (!groupMap[gid]) groupMap[gid] = [];
+                    groupMap[gid].push(doc);
+                }
+            });
+
+            Object.keys(groupMap).forEach(gid => {
+                const full = getMultiGroupStages(gid);
+                // Umumiy ro'yxatda ko'rsatiladigan qismlar
+                const idSet = new Set((docsList || []).map(d => d.id));
+                let stages = full.filter(d => idSet.has(d.id));
+                if (full.length > stages.length) {
+                    // Status filter: Tekshiruvda/Qayta ishlash bo'lmaganlar
+                    const mainOk = full.filter(d => {
+                        const st = String(d.status || '');
+                        return st !== 'Tekshiruvda' && st !== 'Qayta ishlash';
+                    });
+                    if (mainOk.length >= 2) stages = mainOk;
+                    else if (full.length >= 2) stages = full;
+                }
+                if (stages.length < 2 && groupMap[gid].length >= 2) stages = groupMap[gid];
+                stages.sort((a, b) => String(a.deadline || '').localeCompare(String(b.deadline || '')));
+                groupMap[gid] = stages;
+            });
+
+            const units = [];
+            const seenGroups = new Set();
+            (docsList || []).forEach(doc => {
+                const meta = getDocMultiMeta(doc);
+                if (meta && meta.groupId) {
+                    const gid = String(meta.groupId);
+                    if (seenGroups.has(gid)) return;
+                    seenGroups.add(gid);
+                    units.push({ type: 'multi', groupId: gid, stages: groupMap[gid] || [doc] });
+                } else {
+                    units.push({ type: 'single', doc });
+                }
+            });
+            return units;
+        }
+        function toggleMultiGroupExpand(groupId) {
+            if (!groupId) return;
+            const gid = String(groupId);
+            const willExpand = !expandedMultiGroups[gid];
+            expandedMultiGroups[gid] = willExpand;
+
+            // 1) Strelka ikonkasini yangilash
+            document.querySelectorAll('button[data-mgid="' + gid.replace(/"/g, '') + '"]').forEach(btn => {
+                if (btn.querySelector && btn.querySelector('.fa-chevron-down, .fa-chevron-up')) {
+                    const ic = btn.querySelector('.fa-chevron-down, .fa-chevron-up');
+                    if (ic) {
+                        ic.classList.remove('fa-chevron-down', 'fa-chevron-up');
+                        ic.classList.add(willExpand ? 'fa-chevron-up' : 'fa-chevron-down');
+                    }
+                    btn.title = willExpand ? 'Yigish' : 'Boshqa muddatlarni ochish';
+                }
+            });
+
+            // 2) Mavjud sub-qatorlarni olib tashlash
+            document.querySelectorAll('tr[data-multi-sub="' + gid.replace(/"/g, '') + '"]').forEach(tr => tr.remove());
+
+            if (!willExpand) return;
+
+            // 3) Qismlarni topish
+            let stages = getMultiGroupStages(gid);
+            if (!stages || stages.length < 2) {
+                // Soft key fallback: primary doc orqali
+                const all = (allDocsCache && allDocsCache.length) ? allDocsCache : (globalDocsCache || []);
+                enrichDocsWithMultiMeta(all);
+                const sample = all.find(d => {
+                    const meta = getDocMultiMeta(d);
+                    return meta && String(meta.groupId) === gid;
+                });
+                if (sample) {
+                    const sk = multiSoftKey(sample);
+                    stages = all.filter(d => multiSoftKey(d) === sk).sort((a, b) =>
+                        String(a.deadline || '').localeCompare(String(b.deadline || ''))
+                    );
+                    stages.forEach((d, i) => {
+                        d.multi_group_id = gid;
+                        d.stage_index = i;
+                        d.total_stages = stages.length;
+                        setDocMultiMeta(d.id, gid, i, stages.length);
+                    });
+                }
+            }
+            if (!stages || stages.length < 2) {
+                // Oxirgi urinish: globalDocsCache da bir xil raqam
+                const all = globalDocsCache || [];
+                const sample = all.find(d => String(getDocMultiMeta(d) && getDocMultiMeta(d).groupId) === gid)
+                    || all.find(d => d.multi_group_id && String(d.multi_group_id) === gid);
+                if (sample) {
+                    const num = String(sample.doc_number || '').trim();
+                    const title = String(sample.title || '').trim();
+                    stages = all.filter(d =>
+                        String(d.doc_number || '').trim() === num &&
+                        String(d.title || '').trim() === title
+                    ).sort((a, b) => String(a.deadline || '').localeCompare(String(b.deadline || '')));
+                }
+            }
+            if (!stages || stages.length < 2) {
+                console.warn('[EDMS] multi expand: stages topilmadi', gid);
+                expandedMultiGroups[gid] = false;
+                return;
+            }
+
+            stages = stages.slice().sort((a, b) => String(a.deadline || '').localeCompare(String(b.deadline || '')));
+            const total = stages.length;
+
+            // 4) Primary qatorni topish (data-multi-primary)
+            let primaryTr = document.querySelector('tr[data-multi-primary="' + gid.replace(/"/g, '') + '"]');
+            if (!primaryTr) {
+                // fallback: jadvaldagi barcha tr larni qidirish emas — re-render
+                const mainBody = document.getElementById('documentTableBody');
+                if (mainBody && globalDocsCache) {
+                    renderDocsIntoTable(mainBody, globalDocsCache, "Hozircha umumiy hujjatlar yo'q");
+                }
+                return;
+            }
+
+            // 5) Sub-qatorlarni primary dan keyin qo'shish
+            let insertAfter = primaryTr;
+            for (let i = 1; i < total; i++) {
+                const html = buildDocRowHtml(stages[i], '', {
+                    isSubRow: true,
+                    multiInfo: { groupId: gid, stageNum: i + 1, total: total, isPrimary: false }
+                });
+                // data-multi-sub atributini qo'shish
+                const tmp = document.createElement('tbody');
+                tmp.innerHTML = html.trim();
+                const tr = tmp.querySelector('tr');
+                if (tr) {
+                    tr.setAttribute('data-multi-sub', gid);
+                    insertAfter.parentNode.insertBefore(tr, insertAfter.nextSibling);
+                    insertAfter = tr;
+                }
+            }
+        }
+
+        function openMultiGroupMenu(event, groupId) {
+            event.stopPropagation();
+            if (typeof closeAllDropdowns === 'function') closeAllDropdowns(event);
+            const menu = document.getElementById('multiGroupMenu');
+            if (!menu) return;
+            menu.dataset.groupId = String(groupId);
+            const rect = event.currentTarget.getBoundingClientRect();
+            menu.classList.remove('hidden');
+            const mw = menu.offsetWidth || 210;
+            let left = rect.right - mw;
+            if (left < 8) left = 8;
+            if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+            let top = rect.bottom + 6;
+            if (top + 140 > window.innerHeight) top = Math.max(8, rect.top - 140);
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+        }
+        function closeMultiGroupMenu() {
+            const menu = document.getElementById('multiGroupMenu');
+            if (menu) menu.classList.add('hidden');
+        }
+        async function deleteMultiGroupAll() {
+            const menu = document.getElementById('multiGroupMenu');
+            const groupId = menu ? menu.dataset.groupId : null;
+            closeMultiGroupMenu();
+            if (!groupId) return;
+            if (!(typeof isRector === 'function' && isRector(currentUser)) && !(typeof isAdminOnly === 'function' && isAdminOnly(currentUser))) {
+                alert("Bu amal uchun ruxsat yo'q.");
+                return;
+            }
+            const stages = getMultiGroupStages(groupId);
+            if (!stages.length) { alert('Qismlar topilmadi.'); return; }
+            if (!confirm("Ko'p muddatli hujjatning BARCHA " + stages.length + " ta qismi o'chiriladi.\\nBiriktirilgan topshiriqlar ham o'chadi. Davom etasizmi?")) return;
+            try {
+                for (const doc of stages) {
+                    await _supabase.from('tasks').delete().eq('document_id', doc.id);
+                    const { error } = await _supabase.from('documents').delete().eq('id', doc.id);
+                    if (error) throw error;
+                    const m = loadMultiGroupMap();
+                    delete m[String(doc.id)];
+                    saveMultiGroupMap(m);
+                }
+                alert("Ko'p muddatli hujjat to'liq o'chirildi.");
+                fetchDocuments();
+            } catch (err) {
+                alert("O'chirishda xatolik: " + (err.message || err));
+            }
+        }
+        function openMultiGroupEditModal() {
+            const menu = document.getElementById('multiGroupMenu');
+            const groupId = menu ? menu.dataset.groupId : null;
+            closeMultiGroupMenu();
+            if (!groupId) return;
+            const stages = getMultiGroupStages(groupId);
+            if (!stages.length) { alert('Qismlar topilmadi.'); return; }
+            const primary = stages[0];
+            document.getElementById('editDocId').value = '';
+            document.getElementById('docNumber').value = primary.doc_number || '';
+            document.getElementById('sourceOrg').value = primary.source_org || '';
+            document.getElementById('docTitle').value = primary.title || '';
+            document.getElementById('docDeadline').value = '';
+            const df = document.getElementById('docFile');
+            if (df) df.value = '';
+            existingDocFiles = [];
+            pendingDocFiles = [];
+            if (typeof renderPendingDocFileList === 'function') renderPendingDocFileList();
+
+            multiStages = stages.map((doc) => ({
+                id: multiStageIdSeq++,
+                deadline: String(doc.deadline || '').split('T')[0],
+                pendingFiles: [],
+                existingFiles: parseFileUrls(doc.file_url),
+                docId: doc.id
+            }));
+            window._editingMultiGroupId = groupId;
+            multiDeadlineMode = true;
+            const cb = document.getElementById('multiDeadlineToggle');
+            if (cb) cb.checked = true;
+            const toggleWrap = document.getElementById('multiDeadlineToggleWrap');
+            if (toggleWrap) toggleWrap.classList.add('hidden');
+            const multiWrap = document.getElementById('multiStagesWrap');
+            const singleDl = document.getElementById('singleDeadlineWrap');
+            const singleFile = document.getElementById('singleFileWrap');
+            if (multiWrap) multiWrap.classList.remove('hidden');
+            if (singleDl) singleDl.classList.add('hidden');
+            if (singleFile) singleFile.classList.add('hidden');
+            const dlInput = document.getElementById('docDeadline');
+            if (dlInput) dlInput.removeAttribute('required');
+            renderMultiStagesList();
+
+            document.getElementById('addDocModalTitle').innerText = "Ko'p muddatli hujjatni tahrirlash";
+            document.getElementById('saveDocBtn').innerText = "O'zgarishlarni saqlash";
+            document.getElementById('addDocModal').classList.remove('hidden');
+            document.getElementById('addDocModal').classList.add('flex');
+        }
+
+        function buildDocRowHtml(doc, idPrefix, options) {
+            options = options || {};
+            const isSub = !!options.isSubRow;
+            const multiInfo = options.multiInfo || null; // { groupId, stageNum, total, isPrimary }
+            const fileButton = renderFileLinksHtml(doc.file_url);
+
+            const docTasks = globalTasksCache.filter(t => t.document_id === doc.id);
+            let assignedBtn = `
+                <div class="inline-flex flex-col items-center gap-1.5">
+                    <span class="text-xs text-slate-400 italic bg-slate-100 px-2 py-1 rounded">Biriktirilmagan</span>
+                    <button onclick="openAssignModal(${doc.id})" class="w-full text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded-lg transition shadow-sm inline-flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-user-plus text-[10px]"></i> Biriktirish
+                    </button>
+                </div>`;
+            if (docTasks.length > 0) {
+                const allApproved = docTasks.every(t => t.status === 'Bajarildi');
+                const anyPendingReview = docTasks.some(t => t.status === 'Tekshiruvda');
+                if (allApproved) {
+                    assignedBtn = `<button onclick="openAssignedPersonsModal(${doc.id})" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition shadow-sm inline-flex items-center"><i class="fa-solid fa-circle-check mr-1.5"></i> Mas'ullar (${docTasks.length}) — Tasdiqlangan</button>`;
+                } else if (anyPendingReview) {
+                    assignedBtn = `<button onclick="openAssignedPersonsModal(${doc.id})" class="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-semibold px-3 py-1.5 rounded-lg text-xs transition shadow-sm inline-flex items-center"><i class="fa-solid fa-hourglass-half mr-1.5"></i> Mas'ullar (${docTasks.length}) — Tekshiruvda</button>`;
+                } else {
+                    assignedBtn = `<button onclick="openAssignedPersonsModal(${doc.id})" class="bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-semibold px-3 py-1.5 rounded-lg text-xs transition shadow-sm inline-flex items-center"><i class="fa-solid fa-users mr-1.5"></i> Mas'ullar (${docTasks.length})</button>`;
+                }
+            }
+
+            const actionsButton = `<button onclick="toggleGlobalDropdown(event, ${doc.id})" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition"><i class="fa-solid fa-ellipsis-vertical text-base px-1 pointer-events-none"></i></button>`;
+
+            let timeStatusHtml = `<span class="text-slate-400 text-xs italic">Muddat belgilanmagan</span>`;
+            let trBgClass = "hover:bg-slate-50 transition-colors";
+            let tdBorderClass = "border-l-4 border-slate-300";
+            let statusBadge = '';
+
+            if (doc.status === 'Tasdiqlandi') {
+                trBgClass = "bg-emerald-200/90 hover:bg-emerald-200 transition-colors";
+                tdBorderClass = "border-l-4 border-emerald-700";
+                timeStatusHtml = `<span class="text-xs font-bold text-emerald-900"><i class="fa-solid fa-circle-check mr-1"></i> Tashkilot tasdiqlagan</span>`;
+                statusBadge = `<span class="inline-flex items-center gap-1 bg-emerald-700 text-white border border-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm whitespace-nowrap"><i class="fa-solid fa-check-double text-[10px]"></i>Tasdiqlandi</span>`;
+            } else if (doc.status === 'Bajarildi') {
+                trBgClass = "bg-teal-50/70 hover:bg-teal-50 transition-colors";
+                tdBorderClass = "border-l-4 border-teal-500";
+                timeStatusHtml = `<span class="text-xs font-semibold text-teal-800"><i class="fa-solid fa-check-circle mr-1"></i> Bajarildi — tasdiq kutilmoqda</span>`;
+                statusBadge = `<span class="inline-flex items-center bg-teal-100 text-teal-800 border border-teal-300 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm whitespace-nowrap">Bajarildi</span>`;
+            } else {
+                if (doc.deadline) {
+                    let endDate = new Date(doc.deadline);
+                    endDate.setHours(23, 59, 59, 999);
+                    const end = endDate.getTime();
+                    const now = new Date().getTime();
+                    const daysLeft = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+                    const formattedDeadline = formatDateDMY(doc.deadline);
+
+                    if (now > end || daysLeft < 0) {
+                        trBgClass = "bg-rose-50/70 hover:bg-rose-100 transition-colors";
+                        tdBorderClass = "border-l-4 border-rose-500";
+                        timeStatusHtml = `<span class="block text-slate-900 font-medium">${formattedDeadline}</span><span class="block mt-1 text-[11px] font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-md inline-block">Muddati o'tgan!</span>`;
+                    } else if (daysLeft < 3) {
+                        trBgClass = "bg-red-50/40 hover:bg-red-50 transition-colors";
+                        tdBorderClass = "border-l-4 border-red-400";
+                        timeStatusHtml = `<span class="block text-slate-900 font-medium">${formattedDeadline}</span><span class="block mt-1 text-[11px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-md inline-block">${daysLeft} kun qoldi</span>`;
+                    } else if (daysLeft <= 7) {
+                        trBgClass = "bg-amber-50/40 hover:bg-amber-50 transition-colors";
+                        tdBorderClass = "border-l-4 border-amber-400";
+                        timeStatusHtml = `<span class="block text-slate-900 font-medium">${formattedDeadline}</span><span class="block mt-1 text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md inline-block">${daysLeft} kun qoldi</span>`;
+                    } else {
+                        trBgClass = "bg-blue-50/30 hover:bg-blue-50/60 transition-colors";
+                        tdBorderClass = "border-l-4 border-blue-500";
+                        timeStatusHtml = `<span class="block text-slate-900 font-medium">${formattedDeadline}</span><span class="block mt-1 text-[11px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md inline-block">Vaqt yetarli (${daysLeft} kun)</span>`;
+                    }
+                }
+                if (doc.status === 'Tekshiruvda') {
+                    statusBadge = `<span class="inline-flex items-center whitespace-nowrap bg-amber-100 text-amber-800 border border-amber-200 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">Rektor tekshiruvida</span>`;
+                } else if (doc.status === 'Yo\'naltirildi') {
+                    statusBadge = `<span class="inline-flex items-center whitespace-nowrap bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">Jarayonda</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center whitespace-nowrap bg-blue-100 text-blue-800 border border-blue-200 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">${doc.status || 'Yangi'}</span>`;
+                }
+            }
+
+            if (isSub) {
+                trBgClass = trBgClass + ' multi-sub-row';
+                tdBorderClass = tdBorderClass + ' multi-sub-border';
+            }
+
+            // Tarix: ko'p muddatlida yuborilgan + qabul umumiy ko'rinsin; qolgani soat orqali
+            const uploaderName = (doc.created_by_name && String(doc.created_by_name).trim()) ? String(doc.created_by_name).trim() : '';
+            let latestLabel = null, latestTime = null, latestIconClass = '', latestColorClass = '';
+            if (multiInfo) {
+                // Umumiy: yuborilgan va qabul qilingan
+                if (doc.approved_at) { latestLabel = 'Qabul qilingan'; latestTime = doc.approved_at; latestIconClass = 'fa-solid fa-check'; latestColorClass = 'text-emerald-700'; }
+                else if (doc.created_at) { latestLabel = 'Yuborilgan'; latestTime = doc.created_at; latestIconClass = 'fa-regular fa-clock'; latestColorClass = 'text-slate-500'; }
+            } else {
+                if (doc.tasdiqlandi_at) { latestLabel = 'Tasdiqlandi'; latestTime = doc.tasdiqlandi_at; latestIconClass = 'fa-solid fa-check-double'; latestColorClass = 'text-emerald-800 font-semibold'; }
+                else if (doc.bajarildi_at) { latestLabel = 'Bajarildi'; latestTime = doc.bajarildi_at; latestIconClass = 'fa-solid fa-flag-checkered'; latestColorClass = 'text-teal-700'; }
+                else if (doc.approved_at) { latestLabel = 'Qabul qilingan'; latestTime = doc.approved_at; latestIconClass = 'fa-solid fa-check'; latestColorClass = 'text-emerald-700'; }
+                else if (doc.created_at) { latestLabel = 'Yuborilgan'; latestTime = doc.created_at; latestIconClass = 'fa-regular fa-clock'; latestColorClass = 'text-slate-500'; }
+            }
+            const latestTimeHtml = latestTime ? `<div class="text-[10px] ${latestColorClass} mt-0.5 whitespace-nowrap"><i class="${latestIconClass} mr-0.5"></i> ${latestLabel}: ${formatDateTime(latestTime)}</div>` : '';
+
+            const historyIcon = `<button type="button" onclick="event.stopPropagation(); toggleDocHistory(event, '${idPrefix}${doc.id}')" class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-500 hover:text-blue-700 transition" title="Hujjat tarixi"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button>
+                <div id="docHistory_${idPrefix}${doc.id}" class="hidden absolute z-40 left-0 top-full mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg p-3 text-left">
+                    <div class="text-[10px] uppercase font-bold text-slate-400 mb-1.5">Hujjat tarixi</div>
+                    <div class="text-xs text-slate-800 font-semibold"><i class="fa-solid fa-user-pen text-blue-600 mr-1"></i>${uploaderName || '—'}</div>
+                    <div class="mt-1.5 pt-1.5 border-t border-slate-100 space-y-1">
+                        ${doc.created_at ? `<div class="text-[11px] text-slate-500"><i class="fa-regular fa-clock mr-1 w-3 inline-block"></i>Yuborilgan: ${formatDateTime(doc.created_at)}</div>` : ''}
+                        ${doc.approved_at ? `<div class="text-[11px] text-emerald-700"><i class="fa-solid fa-check mr-1 w-3 inline-block"></i>Qabul qilingan: ${formatDateTime(doc.approved_at)}</div>` : ''}
+                        ${doc.bajarildi_at ? `<div class="text-[11px] text-teal-700"><i class="fa-solid fa-flag-checkered mr-1 w-3 inline-block"></i>Bajarildi: ${formatDateTime(doc.bajarildi_at)}</div>` : ''}
+                        ${doc.tasdiqlandi_at ? `<div class="text-[11px] text-emerald-800 font-semibold"><i class="fa-solid fa-check-double mr-1 w-3 inline-block"></i>Tasdiqlandi: ${formatDateTime(doc.tasdiqlandi_at)}</div>` : ''}
+                        ${(!doc.created_at && !doc.approved_at && !doc.bajarildi_at && !doc.tasdiqlandi_at) ? `<div class="text-[11px] text-slate-400">Ma'lumot yo'q</div>` : ''}
+                    </div>
+                </div>`;
+            const createdAtHtml = `<div class="relative inline-block align-middle">${historyIcon}</div>` + latestTimeHtml;
+
+            let numCellExtra = '';
+            let multiGearBtn = '';
+            if (multiInfo) {
+                if (multiInfo.isPrimary) {
+                    const gid = String(multiInfo.groupId || '');
+                    const expanded = !!expandedMultiGroups[gid];
+                    numCellExtra = `<span class="ml-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded-md"><i class="fa-solid fa-layer-group"></i>${multiInfo.total} qism</span>
+                        <button type="button" data-mgid="${gid.replace(/"/g, '')}" onclick="event.stopPropagation(); toggleMultiGroupExpand(this.getAttribute('data-mgid'))" class="ml-1 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100 transition" title="${expanded ? 'Yigish' : 'Boshqa muddatlarni ochish'}">
+                            <i class="fa-solid fa-chevron-${expanded ? 'up' : 'down'} text-[11px]"></i>
+                        </button>`;
+                    multiGearBtn = `<button type="button" data-mgid="${gid.replace(/"/g, '')}" onclick="openMultiGroupMenu(event, this.getAttribute('data-mgid'))" class="p-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg text-indigo-700 border border-indigo-100 transition" title="Ko'p muddatli sozlamalar"><i class="fa-solid fa-sliders text-sm pointer-events-none"></i></button>`;
+                } else {
+                    numCellExtra = `<span class="ml-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-md">Qism ${multiInfo.stageNum}/${multiInfo.total}</span>`;
+                }
+            }
+
+            const multiRowAttr = multiInfo
+                ? (multiInfo.isPrimary
+                    ? ` data-multi-primary="${String(multiInfo.groupId || '').replace(/"/g, '')}"`
+                    : ` data-multi-sub="${String(multiInfo.groupId || '').replace(/"/g, '')}"`)
+                : '';
+            return `
+                <tr class="${trBgClass}${isSub ? ' multi-stage-sub' : ''}"${multiRowAttr}>
+                    <td class="py-3.5 px-4 font-bold text-slate-800 ${tdBorderClass} relative ${isSub ? 'pl-8' : ''}">${isSub ? '<span class="text-slate-300 mr-1">↳</span>' : ''}${doc.doc_number || '№ -'}${numCellExtra}${createdAtHtml}</td>
+                    <td class="py-3.5 px-4 font-medium">${doc.source_org || ''}</td>
+                    <td class="py-3.5 px-4 text-slate-600">${doc.title || ''}</td>
+                    <td class="py-3.5 px-4">${timeStatusHtml}</td>
+                    <td class="py-3.5 px-4 text-center">${assignedBtn}</td>
+                    <td class="py-3.5 px-4">${fileButton}</td>
+                    <td class="py-3.5 px-4">${statusBadge}</td>
+                    <td class="py-3.5 px-4 text-center"><div class="inline-flex items-center justify-center gap-1">${multiGearBtn}${actionsButton}</div></td>
+                </tr>`;
+        }
+
         function parseFileUrls(val) {
             if (!val) return [];
             if (Array.isArray(val)) return val.filter(Boolean);
@@ -3396,7 +4250,209 @@
             const docDeadline = document.getElementById('docDeadline').value;
             const sourceOrg = document.getElementById('sourceOrg').value;
             const docTitle = document.getElementById('docTitle').value;
+            const editingGroupId = window._editingMultiGroupId || null;
+            const isMultiEdit = !editId && multiDeadlineMode && editingGroupId;
+            const isMulti = !editId && multiDeadlineMode && !editingGroupId;
 
+            // --- Ko'p muddatli GURUHNI tahrirlash ---
+            if (isMultiEdit) {
+                if (!multiStages.length) {
+                    alert('Kamida bitta qism kerak.');
+                    btn.innerText = "O'zgarishlarni saqlash"; btn.disabled = false;
+                    return;
+                }
+                for (let i = 0; i < multiStages.length; i++) {
+                    if (!multiStages[i].deadline) {
+                        alert('Qism ' + (i + 1) + ': muddatni tanlang.');
+                        btn.innerText = "O'zgarishlarni saqlash"; btn.disabled = false;
+                        return;
+                    }
+                }
+                try {
+                    const existingStages = getMultiGroupStages(editingGroupId);
+                    const keepIds = new Set(multiStages.filter(s => s.docId).map(s => s.docId));
+                    // O'chirilgan qismlar
+                    for (const oldDoc of existingStages) {
+                        if (!keepIds.has(oldDoc.id)) {
+                            await _supabase.from('tasks').delete().eq('document_id', oldDoc.id);
+                            await _supabase.from('documents').delete().eq('id', oldDoc.id);
+                            const m = loadMultiGroupMap();
+                            delete m[String(oldDoc.id)];
+                            saveMultiGroupMap(m);
+                        }
+                    }
+                    const totalStages = multiStages.length;
+                    // Qismlarni muddat bo'yicha tartiblab stage_index yangilash
+                    const sorted = multiStages.slice().sort((a, b) => String(a.deadline).localeCompare(String(b.deadline)));
+                    for (let i = 0; i < sorted.length; i++) {
+                        const st = sorted[i];
+                        let uploaded = [];
+                        if (st.pendingFiles && st.pendingFiles.length) {
+                            uploaded = await uploadFilesToStorage(st.pendingFiles, 'doc');
+                        }
+                        const allFiles = (st.existingFiles || []).concat(uploaded);
+                        const filePublicUrl = encodeFileUrls(allFiles);
+                        if (st.docId) {
+                            const { error } = await _supabase.from('documents').update({
+                                doc_number: docNumber,
+                                source_org: sourceOrg,
+                                title: docTitle,
+                                deadline: st.deadline,
+                                file_url: filePublicUrl
+                            }).eq('id', st.docId);
+                            if (error) throw error;
+                            setDocMultiMeta(st.docId, editingGroupId, i, totalStages);
+                        } else {
+                            // Yangi qism
+                            const sample = existingStages[0] || {};
+                            const payload = {
+                                doc_number: docNumber,
+                                deadline: st.deadline,
+                                source_org: sourceOrg,
+                                title: docTitle,
+                                file_url: filePublicUrl,
+                                status: sample.status || 'Yangi',
+                                created_by: sample.created_by || (currentUser ? currentUser.id : null),
+                                created_by_name: sample.created_by_name || (currentUser ? (currentUser.full_name || currentUser.username) : 'Admin'),
+                                created_at: sample.created_at || new Date().toISOString(),
+                                approved_at: sample.approved_at || null
+                            };
+                            let { data: insData, error } = await _supabase.from('documents').insert([payload]).select('id');
+                            if (error) throw error;
+                            const newId = insData && insData[0] ? insData[0].id : null;
+                            if (newId) setDocMultiMeta(newId, editingGroupId, i, totalStages);
+                        }
+                    }
+                    window._editingMultiGroupId = null;
+                    multiStages = [];
+                    multiDeadlineMode = false;
+                    btn.innerText = "O'zgarishlarni saqlash"; btn.disabled = false;
+                    closeModal('addDocModal');
+                    alert("Ko'p muddatli hujjat yangilandi.");
+                    fetchDocuments();
+                } catch (err) {
+                    btn.innerText = "O'zgarishlarni saqlash"; btn.disabled = false;
+                    alert('Xatolik: ' + (err.message || err));
+                }
+                return;
+            }
+
+            // --- Ko'p muddatli yangi hujjat ---
+            if (isMulti) {
+                if (!multiStages.length || multiStages.length < 2) {
+                    alert("Ko'p muddatli rejimda kamida 2 ta qism kerak.");
+                    btn.innerText = 'Saqlash'; btn.disabled = false;
+                    return;
+                }
+                for (let i = 0; i < multiStages.length; i++) {
+                    const st = multiStages[i];
+                    if (!st.deadline) {
+                        alert(`Qism ${i + 1}: muddatni tanlang.`);
+                        btn.innerText = 'Saqlash'; btn.disabled = false;
+                        return;
+                    }
+                    if (!(st.pendingFiles && st.pendingFiles.length) && !(st.existingFiles && st.existingFiles.length)) {
+                        // fayl majburiy emas, lekin ogohlantirish yo'q — ruxsat
+                    }
+                }
+                // sort by deadline
+                const stagesSorted = multiStages.slice().sort((a, b) => String(a.deadline).localeCompare(String(b.deadline)));
+                const groupId = makeMultiGroupId();
+                const initialStatus = isAdminOnly(currentUser) ? 'Tekshiruvda' : 'Yangi';
+                const creatorName = currentUser ? (currentUser.full_name || currentUser.username || 'Admin') : 'Admin';
+                const createdAtIso = new Date().toISOString();
+                const totalStages = stagesSorted.length;
+                let successCount = 0;
+                let lastError = null;
+
+                for (let i = 0; i < stagesSorted.length; i++) {
+                    const st = stagesSorted[i];
+                    let uploaded = [];
+                    try {
+                        if (st.pendingFiles && st.pendingFiles.length) {
+                            uploaded = await uploadFilesToStorage(st.pendingFiles, 'doc');
+                        }
+                    } catch (err) {
+                        lastError = err;
+                        break;
+                    }
+                    const allFiles = (st.existingFiles || []).concat(uploaded);
+                    const filePublicUrl = encodeFileUrls(allFiles);
+                    let docPayload = {
+                        doc_number: docNumber,
+                        deadline: st.deadline,
+                        source_org: sourceOrg,
+                        title: docTitle,
+                        file_url: filePublicUrl,
+                        status: initialStatus,
+                        created_by: currentUser ? currentUser.id : null,
+                        created_by_name: creatorName,
+                        created_at: createdAtIso,
+                        multi_group_id: groupId,
+                        stage_index: i,
+                        total_stages: totalStages
+                    };
+                    let insertedId = null;
+                    let { data: insData, error } = await _supabase.from('documents').insert([docPayload]).select('id');
+                    if (error) {
+                        // Ustunlar yo'q bo'lishi mumkin — oddiy payload
+                        const r2 = await _supabase.from('documents').insert([{
+                            doc_number: docNumber,
+                            deadline: st.deadline,
+                            source_org: sourceOrg,
+                            title: docTitle,
+                            file_url: filePublicUrl,
+                            status: initialStatus,
+                            created_by: currentUser ? currentUser.id : null,
+                            created_by_name: creatorName,
+                            created_at: createdAtIso
+                        }]).select('id');
+                        error = r2.error;
+                        insData = r2.data;
+                    }
+                    if (error) {
+                        lastError = error;
+                        break;
+                    }
+                    insertedId = insData && insData[0] ? insData[0].id : null;
+                    if (insertedId) setDocMultiMeta(insertedId, groupId, i, totalStages);
+                    successCount++;
+                }
+
+                btn.innerText = 'Saqlash'; btn.disabled = false;
+                if (lastError && successCount === 0) {
+                    alert('Xatolik: ' + (lastError.message || lastError));
+                    return;
+                }
+                if (lastError && successCount > 0) {
+                    alert(`Qisman saqlandi (${successCount}/${totalStages}). Xatolik: ${lastError.message || lastError}`);
+                } else {
+                    alert(initialStatus === 'Tekshiruvda'
+                        ? `Ko'p muddatli hujjat (${totalStages} qism) rektor tekshiruviga yuborildi!`
+                        : `Ko'p muddatli hujjat (${totalStages} qism) saqlandi!`);
+                }
+                // ID lar olinmagan bo'lsa ham — yangi hujjatlarni fingerprint orqali bog'lash
+                try {
+                    const { data: fresh } = await _supabase.from('documents').select('id, doc_number, title, source_org, created_at, deadline').eq('doc_number', docNumber).order('id', { ascending: false }).limit(20);
+                    if (fresh && fresh.length) {
+                        const matched = fresh.filter(d =>
+                            String(d.title || '') === String(docTitle) &&
+                            String(d.source_org || '') === String(sourceOrg) &&
+                            String(d.created_at || '').slice(0, 19) === String(createdAtIso).slice(0, 19)
+                        );
+                        matched.sort((a, b) => String(a.deadline || '').localeCompare(String(b.deadline || '')));
+                        matched.forEach((d, i) => setDocMultiMeta(d.id, groupId, i, matched.length || totalStages));
+                    }
+                } catch (_) {}
+
+                multiStages = [];
+                setMultiDeadlineModeUI(false, false);
+                closeModal('addDocModal');
+                fetchDocuments();
+                return;
+            }
+
+            // --- Oddiy (bitta muddat) saqlash ---
             let newUploadedUrls = [];
 
             if (pendingDocFiles.length) {
@@ -3410,6 +4466,11 @@
             }
 
             if (editId) {
+                if (!docDeadline) {
+                    alert('Muddatni tanlang.');
+                    btn.innerText = "O'zgarishlarni saqlash"; btn.disabled = false;
+                    return;
+                }
                 const combinedFiles = existingDocFiles.concat(newUploadedUrls);
                 let updateData = {
                     doc_number: docNumber,
@@ -3432,6 +4493,11 @@
                     fetchDocuments();
                 }
             } else {
+                if (!docDeadline) {
+                    alert('Muddatni tanlang.');
+                    btn.innerText = 'Saqlash'; btn.disabled = false;
+                    return;
+                }
                 const filePublicUrl = encodeFileUrls(newUploadedUrls);
                 const initialStatus = isAdminOnly(currentUser) ? 'Tekshiruvda' : 'Yangi';
                 const creatorName = currentUser ? (currentUser.full_name || currentUser.username || 'Admin') : 'Admin';
